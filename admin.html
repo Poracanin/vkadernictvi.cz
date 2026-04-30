@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrace | Vkadeřnictví</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            DEFAULT: '#0a0a0a',
+                            light: '#141414',
+                            lighter: '#1f1f1f'
+                        },
+                        gold: {
+                            light: '#ebd197',
+                            DEFAULT: '#c5a059',
+                            dark: '#9c7b3b'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['Montserrat', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'gold-gradient': 'linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%)',
+                        'dark-gradient': 'linear-gradient(180deg, rgba(10,10,10,0.8) 0%, rgba(10,10,10,1) 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #d1d5db;
+            padding-bottom: 90px; /* Space for the bottom navigation */
+            overflow-x: hidden;
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(to bottom, #ebd197 0%, #c5a059 60%, #9c7b3b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .bg-gold-gradient {
+            background: linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+        }
+
+        /* Vstupy pro formuláře */
+        input[type="text"], input[type="number"], input[type="time"], select {
+            background-color: #141414;
+            border: 1px solid #333;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #c5a059;
+            box-shadow: 0 0 5px rgba(197, 160, 89, 0.3);
+        }
+
+        /* --- MAGIC NAVIGATION MENU CSS --- */
+        .navigation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: #141414;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.6);
+            z-index: 50;
+        }
+
+        .navigation ul {
+            display: flex;
+            width: 350px; /* 5 items * 70px */
+            position: relative;
+            padding: 0;
+            margin: 0;
+        }
+
+        .navigation ul li {
+            position: relative;
+            list-style: none;
+            width: 70px;
+            height: 70px;
+            z-index: 1;
+        }
+
+        .navigation ul li a {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 100%;
+            text-align: center;
+            font-weight: 500;
+            height: 100%;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .navigation ul li a .icon {
+            position: relative;
+            display: block;
+            line-height: 70px; /* Zarovnání na výšku li pro precizní středění */
+            font-size: 1.75em; /* Lehce větší ikony */
+            text-align: center;
+            transition: 0.5s;
+            color: #c5a059;
+            z-index: 10; /* Aby ikona nebyla překryta barevným pozadím kruhu */
+        }
+
+        .navigation ul li.active a .icon {
+            transform: translateY(-35px); /* Matematicky přesně vycentrováno do kruhu (-50% z 70px) */
+            color: #0a0a0a;
+        }
+
+        .navigation ul li a .text {
+            position: absolute;
+            color: #c5a059;
+            font-weight: 500;
+            font-size: 0.6em;
+            letter-spacing: 0.05em;
+            transition: 0.5s;
+            opacity: 0;
+            transform: translateY(20px);
+            text-transform: uppercase;
+        }
+
+        .navigation ul li.active a .text {
+            opacity: 1;
+            transform: translateY(12px);
+        }
+
+        /* Kolečko s gradientem, které cestuje */
+        .indicator {
+            position: absolute;
+            top: -50%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+            border-radius: 50%;
+            border: 6px solid #0a0a0a; /* Ohraničení v barvě pozadí body vytváří iluzi výřezu */
+            transition: 0.5s;
+            z-index: 0;
+        }
+
+        /* Zaoblené okraje výřezu (Cutout effect) */
+        .indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -22px;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border-top-right-radius: 20px;
+            box-shadow: 1px -10px 0 0 #0a0a0a;
+        }
+
+        .indicator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -22px;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border-top-left-radius: 20px;
+            box-shadow: -1px -10px 0 0 #0a0a0a;
+        }
+
+        /* Pozice indikátoru podle aktivního Li (pro 5 položek) */
+        .navigation ul li:nth-child(1).active ~ .indicator { transform: translateX(calc(70px * 0)); }
+        .navigation ul li:nth-child(2).active ~ .indicator { transform: translateX(calc(70px * 1)); }
+        .navigation ul li:nth-child(3).active ~ .indicator { transform: translateX(calc(70px * 2)); }
+        .navigation ul li:nth-child(4).active ~ .indicator { transform: translateX(calc(70px * 3)); }
+        .navigation ul li:nth-child(5).active ~ .indicator { transform: translateX(calc(70px * 4)); }
+
+        /* Kustomizace scrollbaru */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c5a059; }
+
+        /* Přepínání sekcí s lehkou animací */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .tab-content.active-tab {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Otevírací doba - kompaktní time input */
+        .time-input { color-scheme: dark; font-variant-numeric: tabular-nums; }
+        .time-input::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; opacity: 0.5; transition: opacity 0.2s; padding: 0; margin-left: 2px; }
+        .time-input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+        @media (max-width: 640px) {
+            .time-input::-webkit-calendar-picker-indicator { display: none; }
+            .time-input { padding-right: 0.375rem !important; padding-left: 0.375rem !important; text-align: center; }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased text-gray-300">
+
+    <!-- Hlavička admin panelu -->
+    <header class="bg-dark-light border-b border-gray-800 p-3 md:p-4 sticky top-0 z-40 shadow-md">
+        <div class="max-w-5xl mx-auto flex justify-between items-center gap-3">
+            <div class="flex items-center gap-3 md:gap-4">
+                <img src="logo.png" alt="Vkadeřnictví" class="h-12 md:h-14 w-auto">
+                <div class="hidden sm:block border-l border-gray-700 pl-3 md:pl-4">
+                    <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase">Administrace</p>
+                    <p class="text-white text-sm md:text-base font-medium">Veronika Volfová</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 md:gap-4">
+                <span class="hidden md:flex items-center text-xs text-gray-400 bg-black/40 px-3 py-2 rounded border border-gray-800">
+                    <i class="far fa-bell text-gold mr-2"></i>
+                    <span class="text-white font-semibold mr-1">3</span> nové
+                </span>
+                <button class="logout-btn group relative inline-flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-md border border-gray-800 bg-black/40 text-gray-300 hover:text-white hover:border-red-500/60 hover:bg-red-500/10 transition-all duration-300 text-xs md:text-sm uppercase tracking-wider font-semibold overflow-hidden">
+                    <span class="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/10 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    <i class="fas fa-sign-out-alt relative z-10 group-hover:translate-x-0.5 transition-transform duration-300"></i>
+                    <span class="hidden sm:inline relative z-10">Odhlásit</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hlavní obsah -->
+    <main class="max-w-5xl mx-auto p-4 md:p-6 mt-4">
+
+        <!-- SEKCE 1: REZERVACE (Žádosti) -->
+        <section id="rezervace" class="tab-content active-tab">
+            <div class="flex justify-between items-end mb-6 flex-wrap gap-3">
+                <div>
+                    <p class="text-gold tracking-[0.2em] text-xs font-semibold uppercase">Správa požadavků</p>
+                    <h2 class="font-serif text-3xl text-white">Rezervace</h2>
+                </div>
+                <div class="flex gap-2 text-xs">
+                    <span class="bg-gold text-black font-bold px-3 py-1.5 rounded-full shadow-[0_0_10px_rgba(197,160,89,0.4)]">3 Nové</span>
+                    <span class="bg-green-900/30 text-green-400 border border-green-900/50 font-bold px-3 py-1.5 rounded-full">5 Potvrzené</span>
+                </div>
+            </div>
+
+            <!-- Filtr záložky -->
+            <div class="flex gap-2 mb-6 border-b border-gray-800 overflow-x-auto">
+                <button class="px-4 py-3 text-sm uppercase tracking-wider text-gold border-b-2 border-gold whitespace-nowrap font-semibold">
+                    <i class="far fa-clock mr-2"></i>Čekající <span class="ml-1 bg-gold text-black px-1.5 py-0.5 text-[10px] rounded font-bold">3</span>
+                </button>
+                <button class="px-4 py-3 text-sm uppercase tracking-wider text-gray-500 hover:text-gray-300 whitespace-nowrap transition-colors">
+                    <i class="fas fa-check mr-2"></i>Potvrzené
+                </button>
+                <button class="px-4 py-3 text-sm uppercase tracking-wider text-gray-500 hover:text-gray-300 whitespace-nowrap transition-colors">
+                    <i class="fas fa-history mr-2"></i>Historie
+                </button>
+            </div>
+
+            <!-- ČEKAJÍCÍ NA POTVRZENÍ -->
+            <h3 class="text-xs uppercase tracking-widest text-gray-500 mb-3 mt-2 flex items-center">
+                <i class="fas fa-hourglass-half text-gold mr-2"></i>Čekající na potvrzení
+            </h3>
+            <div class="space-y-4 mb-10">
+                <!-- Karta rezervace 1 - NEW -->
+                <div class="bg-dark-light border border-gold border-opacity-30 p-5 rounded-lg shadow-lg relative overflow-hidden group">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-gold"></div>
+                    <span class="absolute top-3 right-3 bg-gold/20 text-gold text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded">Nová</span>
+                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                        <div>
+                            <h3 class="text-white font-medium text-lg">Jana Nováková</h3>
+                            <p class="text-sm text-gray-400 mt-1"><i class="fas fa-venus text-gold mr-2 text-xs"></i> Dámský střih – dlouhé vlasy <span class="text-gold ml-2">500 Kč</span></p>
+                            <p class="text-sm text-gray-400 mt-1"><i class="far fa-clock text-gold mr-2 text-xs"></i> 15. května 2026 ve 14:00 <span class="text-gray-500 text-xs">(60 min)</span></p>
+                            <p class="text-xs text-gray-500 mt-2"><i class="fas fa-phone mr-1"></i> +420 123 456 789 &nbsp;|&nbsp; <i class="fas fa-envelope mr-1"></i> jana.novakova@email.cz</p>
+                            <p class="text-xs text-gray-500 mt-2 italic"><i class="far fa-comment-dots mr-1"></i> „Prosím odpoledne, pokud možno."</p>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button class="flex-1 md:flex-none border border-red-900 text-red-500 hover:bg-red-900 hover:text-white px-4 py-2 text-sm uppercase tracking-wider transition-colors rounded"><i class="fas fa-times mr-1"></i>Zamítnout</button>
+                            <button class="flex-1 md:flex-none bg-gold-gradient text-black font-semibold px-4 py-2 text-sm uppercase tracking-wider hover:brightness-110 transition-colors rounded shadow-lg"><i class="fas fa-check mr-1"></i>Potvrdit</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Karta rezervace 2 -->
+                <div class="bg-dark-light border border-gold border-opacity-30 p-5 rounded-lg shadow-lg relative overflow-hidden group">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-gold"></div>
+                    <span class="absolute top-3 right-3 bg-gold/20 text-gold text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded">Nová</span>
+                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                        <div>
+                            <h3 class="text-white font-medium text-lg">Petr Dvořák</h3>
+                            <p class="text-sm text-gray-400 mt-1"><i class="fas fa-mars text-gold mr-2 text-xs"></i> Klasický střih + úprava vousů <span class="text-gold ml-2">500 Kč</span></p>
+                            <p class="text-sm text-gray-400 mt-1"><i class="far fa-clock text-gold mr-2 text-xs"></i> 16. května 2026 v 09:00 <span class="text-gray-500 text-xs">(60 min)</span></p>
+                            <p class="text-xs text-gray-500 mt-2"><i class="fas fa-phone mr-1"></i> +420 987 654 321 &nbsp;|&nbsp; <i class="fas fa-envelope mr-1"></i> p.dvorak@firma.cz</p>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button class="flex-1 md:flex-none border border-red-900 text-red-500 hover:bg-red-900 hover:text-white px-4 py-2 text-sm uppercase tracking-wider transition-colors rounded"><i class="fas fa-times mr-1"></i>Zamítnout</button>
+                            <button class="flex-1 md:flex-none bg-gold-gradient text-black font-semibold px-4 py-2 text-sm uppercase tracking-wider hover:brightness-110 transition-colors rounded shadow-lg"><i class="fas fa-check mr-1"></i>Potvrdit</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Karta rezervace 3 - Melír -->
+                <div class="bg-dark-light border border-gold border-opacity-30 p-5 rounded-lg shadow-lg relative overflow-hidden group">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-gold"></div>
+                    <span class="absolute top-3 right-3 bg-gold/20 text-gold text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded">Nová</span>
+                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                        <div>
+                            <h3 class="text-white font-medium text-lg">Markéta Svobodová</h3>
+                            <p class="text-sm text-gray-400 mt-1"><i class="fas fa-magic text-gold mr-2 text-xs"></i> Melír <span class="text-gold ml-2">1 500 Kč</span></p>
+                            <p class="text-sm text-gray-400 mt-1"><i class="far fa-clock text-gold mr-2 text-xs"></i> 19. května 2026 v 10:00 <span class="text-gray-500 text-xs">(3,5 hod)</span></p>
+                            <p class="text-xs text-gray-500 mt-2"><i class="fas fa-phone mr-1"></i> +420 605 123 456 &nbsp;|&nbsp; <i class="fas fa-envelope mr-1"></i> marketa.s@gmail.com</p>
+                            <p class="text-xs text-gray-500 mt-2 italic"><i class="far fa-comment-dots mr-1"></i> „Jdu poprvé, ráda bych přírodní odstín."</p>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button class="flex-1 md:flex-none border border-red-900 text-red-500 hover:bg-red-900 hover:text-white px-4 py-2 text-sm uppercase tracking-wider transition-colors rounded"><i class="fas fa-times mr-1"></i>Zamítnout</button>
+                            <button class="flex-1 md:flex-none bg-gold-gradient text-black font-semibold px-4 py-2 text-sm uppercase tracking-wider hover:brightness-110 transition-colors rounded shadow-lg"><i class="fas fa-check mr-1"></i>Potvrdit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POTVRZENÉ REZERVACE -->
+            <h3 class="text-xs uppercase tracking-widest text-gray-500 mb-3 mt-8 flex items-center">
+                <i class="fas fa-check-circle text-green-500 mr-2"></i>Nadcházející potvrzené
+            </h3>
+            <div class="space-y-3">
+                <!-- Potvrzená 1 -->
+                <div class="bg-dark-light border border-green-900/30 p-4 rounded-lg flex flex-col md:flex-row md:items-center gap-3">
+                    <div class="flex items-center flex-1 gap-4">
+                        <div class="bg-green-900/30 text-green-400 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-white text-sm font-medium">Eva Procházková</p>
+                            <p class="text-xs text-gray-500"><i class="fas fa-venus text-gold mr-1"></i>Barvení vlasů · <span class="text-gold">900 Kč</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-gray-400 md:border-l md:border-gray-800 md:pl-4">
+                        <span><i class="far fa-calendar-alt text-gold mr-1"></i>17. 5. v 13:00</span>
+                        <button class="text-gray-500 hover:text-gold transition-colors px-2 py-1" title="Upravit"><i class="fas fa-edit"></i></button>
+                        <button class="text-gray-500 hover:text-red-500 transition-colors px-2 py-1" title="Zrušit"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+
+                <!-- Potvrzená 2 -->
+                <div class="bg-dark-light border border-green-900/30 p-4 rounded-lg flex flex-col md:flex-row md:items-center gap-3">
+                    <div class="flex items-center flex-1 gap-4">
+                        <div class="bg-green-900/30 text-green-400 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-white text-sm font-medium">Tomáš Horák</p>
+                            <p class="text-xs text-gray-500"><i class="fas fa-mars text-gold mr-1"></i>Klasický pánský střih · <span class="text-gold">300 Kč</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-gray-400 md:border-l md:border-gray-800 md:pl-4">
+                        <span><i class="far fa-calendar-alt text-gold mr-1"></i>18. 5. v 16:00</span>
+                        <button class="text-gray-500 hover:text-gold transition-colors px-2 py-1" title="Upravit"><i class="fas fa-edit"></i></button>
+                        <button class="text-gray-500 hover:text-red-500 transition-colors px-2 py-1" title="Zrušit"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+
+                <!-- Potvrzená 3 -->
+                <div class="bg-dark-light border border-green-900/30 p-4 rounded-lg flex flex-col md:flex-row md:items-center gap-3">
+                    <div class="flex items-center flex-1 gap-4">
+                        <div class="bg-green-900/30 text-green-400 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-white text-sm font-medium">Lukášek Kovář (8 let)</p>
+                            <p class="text-xs text-gray-500"><i class="fas fa-child text-gold mr-1"></i>Dětský střih · <span class="text-gold">250 Kč</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-gray-400 md:border-l md:border-gray-800 md:pl-4">
+                        <span><i class="far fa-calendar-alt text-gold mr-1"></i>20. 5. v 15:30</span>
+                        <button class="text-gray-500 hover:text-gold transition-colors px-2 py-1" title="Upravit"><i class="fas fa-edit"></i></button>
+                        <button class="text-gray-500 hover:text-red-500 transition-colors px-2 py-1" title="Zrušit"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+
+                <!-- Potvrzená 4 -->
+                <div class="bg-dark-light border border-green-900/30 p-4 rounded-lg flex flex-col md:flex-row md:items-center gap-3">
+                    <div class="flex items-center flex-1 gap-4">
+                        <div class="bg-green-900/30 text-green-400 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-white text-sm font-medium">Lenka Veselá</p>
+                            <p class="text-xs text-gray-500"><i class="fas fa-venus text-gold mr-1"></i>Malibu C péče · <span class="text-gold">1 200 Kč</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-gray-400 md:border-l md:border-gray-800 md:pl-4">
+                        <span><i class="far fa-calendar-alt text-gold mr-1"></i>22. 5. v 09:00</span>
+                        <button class="text-gray-500 hover:text-gold transition-colors px-2 py-1" title="Upravit"><i class="fas fa-edit"></i></button>
+                        <button class="text-gray-500 hover:text-red-500 transition-colors px-2 py-1" title="Zrušit"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+
+                <!-- Potvrzená 5 -->
+                <div class="bg-dark-light border border-green-900/30 p-4 rounded-lg flex flex-col md:flex-row md:items-center gap-3">
+                    <div class="flex items-center flex-1 gap-4">
+                        <div class="bg-green-900/30 text-green-400 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-white text-sm font-medium">Martina Krejčí</p>
+                            <p class="text-xs text-gray-500"><i class="fas fa-venus text-gold mr-1"></i>Přeliv · <span class="text-gold">800 Kč</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-gray-400 md:border-l md:border-gray-800 md:pl-4">
+                        <span><i class="far fa-calendar-alt text-gold mr-1"></i>23. 5. v 11:00</span>
+                        <button class="text-gray-500 hover:text-gold transition-colors px-2 py-1" title="Upravit"><i class="fas fa-edit"></i></button>
+                        <button class="text-gray-500 hover:text-red-500 transition-colors px-2 py-1" title="Zrušit"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SEKCE 2: KALENDÁŘ A ROZVRH -->
+        <section id="kalendar" class="tab-content">
+            <div class="mb-6">
+                <p class="text-gold tracking-[0.2em] text-xs font-semibold uppercase">Plánování</p>
+                <h2 class="font-serif text-3xl text-white">Kalendář a Přehled</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- LEVÁ ČÁST: Vizualizace kalendáře -->
+                <div class="lg:col-span-2 bg-dark-light border border-gray-800 p-6 rounded-lg shadow-lg">
+                    <!-- Navigace měsíců -->
+                    <div class="flex justify-between items-center mb-6">
+                        <button id="calPrev" type="button" class="w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gold hover:text-black hover:border-gold transition-colors text-gray-400" title="Předchozí měsíc">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </button>
+                        <div class="flex items-center gap-3">
+                            <h3 id="calMonthLabel" class="text-xl font-medium text-white tracking-wide">Květen 2026</h3>
+                            <button id="calToday" type="button" class="text-[10px] uppercase tracking-widest text-gold border border-gold/40 hover:bg-gold hover:text-black transition-colors px-2 py-1 rounded" title="Skok na dnešní den">Dnes</button>
+                        </div>
+                        <button id="calNext" type="button" class="w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gold hover:text-black hover:border-gold transition-colors text-gray-400" title="Následující měsíc">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- Mřížka kalendáře -->
+                    <div class="grid grid-cols-7 gap-2 text-center mb-2">
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Po</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Út</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">St</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Čt</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Pá</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">So</div>
+                        <div class="text-xs text-red-500/70 font-semibold uppercase tracking-wider">Ne</div>
+                    </div>
+
+                    <div id="calGrid" class="grid grid-cols-7 gap-2 text-center text-sm">
+                        <!-- Dny generuje JS -->
+                    </div>
+
+                    <!-- Legenda -->
+                    <div class="flex items-center justify-center gap-5 text-[10px] uppercase tracking-widest text-gray-500 mt-5 pt-4 border-t border-gray-800 flex-wrap">
+                        <span class="flex items-center"><span class="w-2 h-2 bg-gold rounded-full mr-2"></span>Rezervace</span>
+                        <span class="flex items-center"><span class="w-2 h-2 bg-gold-gradient rounded-full mr-2"></span>Vybraný den</span>
+                        <span class="flex items-center text-red-400/70">Ne &nbsp;= Zavřeno</span>
+                    </div>
+                </div>
+
+                <!-- PRAVÁ ČÁST: Detailní seznam pro vybraný den -->
+                <div class="lg:col-span-1 bg-dark-light border border-gray-800 p-6 rounded-lg shadow-lg flex flex-col">
+                    <h3 class="text-lg font-serif text-white mb-2 flex justify-between items-center">
+                        <span>15. května (Pátek)</span>
+                        <span class="text-gold text-sm bg-gold/10 px-2 py-1 rounded">3 klienti</span>
+                    </h3>
+                    <p class="text-xs text-gray-500 mb-5 pb-3 border-b border-gray-800 flex items-center gap-2">
+                        <span class="bg-gold/20 text-gold px-2 py-0.5 rounded text-[10px] uppercase tracking-widest">2 200 Kč</span>
+                        <span>· obsazenost 75 %</span>
+                    </p>
+                    
+                    <div class="space-y-2 flex-1 overflow-y-auto pr-2">
+                        <!-- 09:00 -->
+                        <div class="flex items-start gap-4">
+                            <div class="text-gold font-bold mt-1 text-sm w-12 text-right">09:00</div>
+                            <div class="bg-black/50 border border-gray-800 p-3 rounded-lg flex-1 hover:border-gray-600 transition-colors">
+                                <h4 class="text-white text-sm font-medium">Petr Dvořák</h4>
+                                <p class="text-xs text-gray-400 mt-1"><i class="fas fa-mars text-gold mr-1"></i> Klasický střih + vousy</p>
+                                <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                    <span><i class="far fa-clock mr-1"></i>60 min</span>
+                                    <span class="text-gold font-semibold">500 Kč</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 10:30 -->
+                        <div class="flex items-center gap-4 py-1.5 opacity-30">
+                            <div class="text-gray-500 font-medium text-sm w-12 text-right">10:30</div>
+                            <div class="border-t border-dashed border-gray-700 flex-1"></div>
+                        </div>
+
+                        <!-- 11:00 - 2. rezervace -->
+                        <div class="flex items-start gap-4">
+                            <div class="text-gold font-bold mt-1 text-sm w-12 text-right">11:00</div>
+                            <div class="bg-black/50 border border-gray-800 p-3 rounded-lg flex-1 hover:border-gray-600 transition-colors">
+                                <h4 class="text-white text-sm font-medium">Martin Černý</h4>
+                                <p class="text-xs text-gray-400 mt-1"><i class="fas fa-mars text-gold mr-1"></i> Střih strojkem</p>
+                                <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                    <span><i class="far fa-clock mr-1"></i>30 min</span>
+                                    <span class="text-gold font-semibold">250 Kč</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Přestávka 12:00 -->
+                        <div class="flex items-center gap-4 py-1.5">
+                            <div class="text-gray-500 font-medium text-sm w-12 text-right">12:00</div>
+                            <div class="bg-gray-900/60 text-gray-500 text-xs uppercase tracking-widest text-center py-2 rounded-lg flex-1 border border-gray-800">
+                                <i class="fas fa-coffee mr-2"></i> Polední pauza (60 min)
+                            </div>
+                        </div>
+
+                        <!-- 13:00 -->
+                        <div class="flex items-center gap-4 py-1.5 opacity-30">
+                            <div class="text-gray-500 font-medium text-sm w-12 text-right">13:00</div>
+                            <div class="border-t border-dashed border-gray-700 flex-1"></div>
+                        </div>
+
+                        <!-- 14:00 - Nová potvrzená -->
+                        <div class="flex items-start gap-4">
+                            <div class="text-gold font-bold mt-1 text-sm w-12 text-right">14:00</div>
+                            <div class="bg-dark border border-gold/40 p-3 rounded-lg flex-1 relative overflow-hidden shadow-[0_0_10px_rgba(197,160,89,0.1)]">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-gold"></div>
+                                <span class="absolute top-2 right-2 bg-gold/20 text-gold text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded">Nová</span>
+                                <h4 class="text-white text-sm font-medium pr-12">Jana Nováková</h4>
+                                <p class="text-xs text-gray-400 mt-1"><i class="fas fa-venus text-gold mr-1"></i> Dámský střih – dlouhé</p>
+                                <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                    <span><i class="far fa-clock mr-1"></i>60 min</span>
+                                    <span class="text-gold font-semibold">500 Kč</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 15:30 -->
+                        <div class="flex items-center gap-4 py-1.5 opacity-30">
+                            <div class="text-gray-500 font-medium text-sm w-12 text-right">15:30</div>
+                            <div class="border-t border-dashed border-gray-700 flex-1"></div>
+                        </div>
+
+                        <!-- 16:00 -->
+                        <div class="flex items-start gap-4">
+                            <div class="text-gold font-bold mt-1 text-sm w-12 text-right">16:00</div>
+                            <div class="bg-black/50 border border-gray-800 p-3 rounded-lg flex-1 hover:border-gray-600 transition-colors">
+                                <h4 class="text-white text-sm font-medium">Klárka Malá (5 let)</h4>
+                                <p class="text-xs text-gray-400 mt-1"><i class="fas fa-child text-gold mr-1"></i> Dětský střih</p>
+                                <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                    <span><i class="far fa-clock mr-1"></i>30 min</span>
+                                    <span class="text-gold font-semibold">250 Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SEKCE 3: SLUŽBY -->
+        <section id="sluzby" class="tab-content">
+            <div class="flex justify-between items-end mb-6 flex-wrap gap-3">
+                <div>
+                    <p class="text-gold tracking-[0.2em] text-xs font-semibold uppercase">Katalog</p>
+                    <h2 class="font-serif text-3xl text-white">Úprava Služeb</h2>
+                </div>
+                <button onclick="openServiceModalForAdd()" class="bg-gold-gradient text-black font-semibold uppercase tracking-wider text-xs px-5 py-3 hover:brightness-110 transition-all rounded shadow-[0_0_15px_rgba(197,160,89,0.3)] inline-flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Přidat službu
+                </button>
+            </div>
+
+            <!-- Existující služby -->
+            <div class="bg-dark-light border border-gray-800 rounded-lg overflow-hidden">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-black/50">
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold">Název</th>
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold">Kategorie</th>
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold hidden md:table-cell">Délka</th>
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold text-right">Cena</th>
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold text-right">Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800" id="services-tbody">
+                        <!-- Vykresluje JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+        <!-- SEKCE 4: CENY -->
+        <section id="ceny" class="tab-content">
+            <div class="mb-6">
+                <p class="text-gold tracking-[0.2em] text-xs font-semibold uppercase">Financování</p>
+                <h2 class="font-serif text-3xl text-white">Nastavení Ceníku</h2>
+            </div>
+
+            <div class="space-y-6">
+                <!-- DÁMSKÉ -->
+                <div class="bg-dark-light border border-gray-800 rounded-lg relative overflow-hidden">
+                    <div class="bg-gold-gradient px-5 py-3 flex items-center justify-between text-black">
+                        <h3 class="font-serif text-lg font-bold uppercase tracking-widest flex items-center"><i class="fas fa-venus mr-2"></i>Dámské</h3>
+                        <span class="text-xs font-semibold opacity-70">6 služeb</span>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-gray-800 pb-3">
+                            <h4 class="text-white text-sm font-medium flex-1">Dámský střih – dlouhé vlasy</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="60 min" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="500" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-gray-800 pb-3">
+                            <h4 class="text-white text-sm font-medium flex-1">Barvení vlasů</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="90 min" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="900" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-gray-800 pb-3">
+                            <h4 class="text-white text-sm font-medium flex-1">Přeliv</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="90 min" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="800" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-gray-800 pb-3">
+                            <h4 class="text-white text-sm font-medium flex-1">Melír</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="3,5 hod" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="1500" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-gray-800 pb-3">
+                            <h4 class="text-white text-sm font-medium flex-1">Barvení + sundání pásek</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="3 hod" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="1400" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 pb-1">
+                            <h4 class="text-white text-sm font-medium flex-1">Malibu C péče</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="3 hod" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="1200" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PÁNSKÉ -->
+                <div class="bg-dark-light border border-gray-800 rounded-lg relative overflow-hidden">
+                    <div class="bg-gold-gradient px-5 py-3 flex items-center justify-between text-black">
+                        <h3 class="font-serif text-lg font-bold uppercase tracking-widest flex items-center"><i class="fas fa-mars mr-2"></i>Pánské</h3>
+                        <span class="text-xs font-semibold opacity-70">3 služby</span>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-gray-800 pb-3">
+                            <h4 class="text-white text-sm font-medium flex-1">Klasický pánský střih</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="30 min" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="300" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-gray-800 pb-3">
+                            <h4 class="text-white text-sm font-medium flex-1">Klasický střih + vousy</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="60 min" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="500" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 pb-1">
+                            <h4 class="text-white text-sm font-medium flex-1">Střih strojkem</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="30 min" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="250" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DĚTSKÉ -->
+                <div class="bg-dark-light border border-gray-800 rounded-lg relative overflow-hidden">
+                    <div class="bg-gold-gradient px-5 py-3 flex items-center justify-between text-black">
+                        <h3 class="font-serif text-lg font-bold uppercase tracking-widest flex items-center"><i class="fas fa-child mr-2"></i>Dětské</h3>
+                        <span class="text-xs font-semibold opacity-70">1 služba</span>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 pb-1">
+                            <h4 class="text-white text-sm font-medium flex-1">Dětský střih</h4>
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <input type="text" value="30 min" class="p-2 text-sm w-24 text-center rounded">
+                                <div class="relative">
+                                    <input type="number" value="250" class="p-2 pl-3 pr-10 text-sm w-28 text-right rounded">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button class="bg-gold-gradient text-black font-semibold uppercase tracking-wider text-xs px-8 py-3 hover:brightness-110 transition-all rounded shadow-lg">
+                        <i class="fas fa-save mr-2"></i>Uložit změny v ceníku
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SEKCE 5: OTEVÍRACÍ DOBA -->
+        <section id="doba" class="tab-content">
+            <div class="mb-6">
+                <p class="text-gold tracking-[0.2em] text-xs font-semibold uppercase">Dostupnost</p>
+                <h2 class="font-serif text-3xl text-white">Otevírací Doba</h2>
+                <p class="text-xs text-gray-500 mt-2">Klikněte na tlačítko pro přepnutí mezi otevřeno a zavřeno. Pro otevřený den nastavte časy.</p>
+            </div>
+
+            <div class="bg-dark-light border border-gray-800 p-3 sm:p-5 rounded-lg" id="hoursContainer">
+                <div class="space-y-1.5" id="hoursList"></div>
+
+                <div class="mt-6 flex justify-end pt-4 border-t border-gray-800">
+                    <button onclick="saveHours()" class="bg-gold-gradient text-black font-semibold uppercase tracking-wider text-xs px-8 py-3 hover:brightness-110 transition-all rounded shadow-lg">
+                        <i class="fas fa-save mr-2"></i>Uložit otevírací dobu
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal pro úpravu služby -->
+    <div id="serviceModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-80 transition-opacity duration-300 opacity-0 p-4">
+        <div class="bg-dark-light border border-gold/30 p-6 rounded-lg shadow-2xl max-w-lg w-full transform scale-95 transition-transform duration-300 relative" id="serviceModalContent">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gold-gradient rounded-t-lg"></div>
+
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase">Úprava služby</p>
+                    <h3 class="font-serif text-2xl text-white" id="serviceModalTitle">Upravit službu</h3>
+                </div>
+                <button onclick="closeServiceModal()" class="text-gray-500 hover:text-white transition-colors w-8 h-8 flex items-center justify-center" aria-label="Zavřít">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveService(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Název služby</label>
+                    <input type="text" id="serviceModalName" required class="p-3 text-sm rounded w-full" placeholder="Např. Dámský střih">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Kategorie</label>
+                        <select id="serviceModalCategory" class="p-3 text-sm rounded w-full">
+                            <option>Dámské</option>
+                            <option>Pánské</option>
+                            <option>Dětské</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Délka</label>
+                        <input type="text" id="serviceModalDuration" class="p-3 text-sm rounded w-full" placeholder="Např. 60 min">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Cena</label>
+                    <div class="relative">
+                        <input type="number" id="serviceModalPrice" class="p-3 pl-3 pr-12 text-sm w-full rounded" placeholder="Cena">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Ikona</label>
+                    <div class="grid grid-cols-6 gap-2" id="iconPicker">
+                        <button type="button" data-icon="fa-cut" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-cut"></i></button>
+                        <button type="button" data-icon="fa-palette" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-palette"></i></button>
+                        <button type="button" data-icon="fa-tint" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-tint"></i></button>
+                        <button type="button" data-icon="fa-magic" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-magic"></i></button>
+                        <button type="button" data-icon="fa-layer-group" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-layer-group"></i></button>
+                        <button type="button" data-icon="fa-leaf" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-leaf"></i></button>
+                        <button type="button" data-icon="fa-user-tie" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-user-tie"></i></button>
+                        <button type="button" data-icon="fa-bolt" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-bolt"></i></button>
+                        <button type="button" data-icon="fa-child" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-child"></i></button>
+                        <button type="button" data-icon="fa-mars" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-mars"></i></button>
+                        <button type="button" data-icon="fa-venus" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-venus"></i></button>
+                        <button type="button" data-icon="fa-spray-can" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-spray-can"></i></button>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-4 border-t border-gray-800 mt-2">
+                    <button type="button" onclick="closeServiceModal()" class="flex-1 border border-gray-700 text-gray-300 hover:bg-gray-800 px-4 py-3 text-xs uppercase tracking-wider transition-colors rounded">
+                        Zrušit
+                    </button>
+                    <button type="submit" class="flex-1 bg-gold-gradient text-black font-semibold px-4 py-3 text-xs uppercase tracking-wider hover:brightness-110 transition-all rounded shadow-lg">
+                        <i class="fas fa-save mr-2"></i>Uložit změny
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal pro potvrzení rezervace -->
+    <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-80 transition-opacity duration-300 opacity-0 p-4">
+        <div class="bg-dark-light border border-gold/30 p-7 rounded-lg shadow-2xl max-w-md w-full text-center transform scale-95 transition-transform duration-300 relative" id="confirmModalContent">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gold-gradient rounded-t-lg"></div>
+            <div class="bg-green-900/30 border border-green-900/50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-400 text-2xl"></i>
+            </div>
+            <h3 class="font-serif text-2xl text-white mb-2">Rezervace potvrzena</h3>
+            <p class="text-gray-400 mb-2 text-sm">Klientka <span class="text-gold font-semibold">Jana Nováková</span> bude informována o potvrzení termínu.</p>
+            <div class="bg-black/40 border border-gray-800 rounded-lg p-4 my-5 text-left">
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-gray-500">Služba:</span>
+                    <span class="text-white">Dámský střih – dlouhé vlasy</span>
+                </div>
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-gray-500">Termín:</span>
+                    <span class="text-white">15. května 2026 ve 14:00</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Cena:</span>
+                    <span class="text-gold font-semibold">500 Kč</span>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="closeConfirmModal()" class="flex-1 border border-gray-700 text-gray-300 hover:bg-gray-800 px-4 py-3 text-xs uppercase tracking-wider transition-colors rounded">
+                    Zavřít
+                </button>
+                <button onclick="closeConfirmModal()" class="flex-1 bg-gold-gradient text-black font-semibold px-4 py-3 text-xs uppercase tracking-wider hover:brightness-110 transition-all rounded shadow-lg">
+                    <i class="fas fa-paper-plane mr-2"></i>Odeslat klientovi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAGIC NAVIGATION MENU (5 Položek) -->
+    <div class="navigation">
+        <ul id="nav-list">
+            <!-- 1. Rezervace -->
+            <li class="active" onclick="switchTab(0, 'rezervace')">
+                <a href="#">
+                    <span class="icon"><i class="fas fa-inbox"></i></span>
+                    <span class="text">Žádosti</span>
+                </a>
+            </li>
+            <!-- 2. Kalendář -->
+            <li onclick="switchTab(1, 'kalendar')">
+                <a href="#">
+                    <span class="icon"><i class="far fa-calendar-alt"></i></span>
+                    <span class="text">Kalendář</span>
+                </a>
+            </li>
+            <!-- 3. Služby -->
+            <li onclick="switchTab(2, 'sluzby')">
+                <a href="#">
+                    <span class="icon"><i class="fas fa-cut"></i></span>
+                    <span class="text">Služby</span>
+                </a>
+            </li>
+            <!-- 4. Ceny -->
+            <li onclick="switchTab(3, 'ceny')">
+                <a href="#">
+                    <span class="icon"><i class="fas fa-tag"></i></span>
+                    <span class="text">Ceny</span>
+                </a>
+            </li>
+            <!-- 5. Nastavení / Doba -->
+            <li onclick="switchTab(4, 'doba')">
+                <a href="#">
+                    <span class="icon"><i class="far fa-clock"></i></span>
+                    <span class="text">Doba</span>
+                </a>
+            </li>
+            
+            <!-- Pohyblivý indikátor (Kolečko) -->
+            <div class="indicator"></div>
+        </ul>
+    </div>
+
+    <!-- JavaScript pro funkčnost Magického Menu a záložek -->
+    <script>
+        function switchTab(index, sectionId) {
+            const listItems = document.querySelectorAll('#nav-list li');
+            listItems.forEach((li) => {
+                li.classList.remove('active');
+            });
+            listItems[index].classList.add('active');
+
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach((tab) => {
+                tab.classList.remove('active-tab');
+            });
+            document.getElementById(sectionId).classList.add('active-tab');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Modal potvrzení rezervace
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmModalContent = document.getElementById('confirmModalContent');
+
+        function openConfirmModal() {
+            confirmModal.classList.remove('hidden');
+            setTimeout(() => {
+                confirmModal.classList.remove('opacity-0');
+                confirmModalContent.classList.remove('scale-95');
+                confirmModalContent.classList.add('scale-100');
+            }, 10);
+        }
+        function closeConfirmModal() {
+            confirmModal.classList.add('opacity-0');
+            confirmModalContent.classList.remove('scale-100');
+            confirmModalContent.classList.add('scale-95');
+            setTimeout(() => {
+                confirmModal.classList.add('hidden');
+            }, 300);
+        }
+
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) closeConfirmModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !confirmModal.classList.contains('hidden')) {
+                closeConfirmModal();
+            }
+        });
+
+        // Připojení tlačítek "Potvrdit" v sekci rezervací
+        document.querySelectorAll('button').forEach(btn => {
+            const text = btn.textContent.trim();
+            if (text.includes('Potvrdit')) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openConfirmModal();
+                });
+            }
+        });
+
+        // === SLUŽBY - data-driven s localStorage cache ===
+        const STORAGE_KEY = 'vkadernictvi_services_v1';
+        const DEFAULT_SERVICES = [
+            { id: 1,  icon: 'fa-cut',         name: 'Dámský střih – dlouhé vlasy', category: 'Dámské',  duration: '60 min', price: 500  },
+            { id: 2,  icon: 'fa-palette',     name: 'Barvení vlasů',               category: 'Dámské',  duration: '90 min', price: 900  },
+            { id: 3,  icon: 'fa-tint',        name: 'Přeliv',                      category: 'Dámské',  duration: '90 min', price: 800  },
+            { id: 4,  icon: 'fa-magic',       name: 'Melír',                       category: 'Dámské',  duration: '3,5 hod', price: 1500 },
+            { id: 5,  icon: 'fa-layer-group', name: 'Barvení + sundání pásek',     category: 'Dámské',  duration: '3 hod',  price: 1400 },
+            { id: 6,  icon: 'fa-leaf',        name: 'Malibu C péče',               category: 'Dámské',  duration: '3 hod',  price: 1200 },
+            { id: 7,  icon: 'fa-cut',         name: 'Klasický pánský střih',       category: 'Pánské',  duration: '30 min', price: 300  },
+            { id: 8,  icon: 'fa-user-tie',    name: 'Klasický střih + úprava vousů', category: 'Pánské', duration: '60 min', price: 500  },
+            { id: 9,  icon: 'fa-bolt',        name: 'Střih strojkem',              category: 'Pánské',  duration: '30 min', price: 250  },
+            { id: 10, icon: 'fa-child',       name: 'Dětský střih',                category: 'Dětské',  duration: '30 min', price: 250  }
+        ];
+
+        let services = loadServices();
+
+        function loadServices() {
+            try {
+                const cached = localStorage.getItem(STORAGE_KEY);
+                if (cached) return JSON.parse(cached);
+            } catch (e) { console.warn('Nelze načíst cache:', e); }
+            return JSON.parse(JSON.stringify(DEFAULT_SERVICES));
+        }
+
+        function persistServices() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(services));
+            } catch (e) { console.warn('Nelze uložit cache:', e); }
+        }
+
+        function nextServiceId() {
+            return services.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
+        }
+
+        const CATEGORY_ORDER = { 'Dámské': 0, 'Pánské': 1, 'Dětské': 2 };
+        const BADGE_COLORS = {
+            'Dámské': 'bg-pink-900/20 text-pink-300',
+            'Pánské': 'bg-blue-900/20 text-blue-300',
+            'Dětské': 'bg-purple-900/20 text-purple-300'
+        };
+
+        function renderServices() {
+            const tbody = document.getElementById('services-tbody');
+            if (!tbody) return;
+
+            const sorted = [...services].sort((a, b) => {
+                const ca = CATEGORY_ORDER[a.category] ?? 99;
+                const cb = CATEGORY_ORDER[b.category] ?? 99;
+                if (ca !== cb) return ca - cb;
+                return (a.id || 0) - (b.id || 0);
+            });
+
+            if (sorted.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="5" class="p-8 text-center text-gray-500 text-sm">
+                        <i class="fas fa-inbox text-2xl mb-2 block text-gray-700"></i>
+                        Zatím žádné služby. Přidejte první kliknutím na <span class="text-gold">"Přidat službu"</span>.
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = sorted.map(s => `
+                <tr class="hover:bg-white/5 transition-colors group" data-id="${s.id}">
+                    <td class="p-4 text-sm text-white"><i class="fas ${s.icon} text-gold/60 mr-2 text-xs"></i>${escapeHtml(s.name)}</td>
+                    <td class="p-4 text-xs"><span class="${BADGE_COLORS[s.category] || 'bg-gray-700 text-gray-200'} px-2 py-1 rounded text-[10px] uppercase tracking-wider">${s.category}</span></td>
+                    <td class="p-4 text-xs text-gray-400 hidden md:table-cell">${escapeHtml(s.duration || '-')}</td>
+                    <td class="p-4 text-sm text-gold text-right whitespace-nowrap font-semibold">${Number(s.price).toLocaleString('cs-CZ')} Kč</td>
+                    <td class="p-4 text-right whitespace-nowrap">
+                        <button onclick="openServiceModal(${s.id})" class="text-gray-500 hover:text-gold transition-colors p-2" title="Upravit"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteService(${s.id})" class="text-gray-500 hover:text-red-500 transition-colors p-2" title="Smazat"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, m => ({
+                '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+            }[m]));
+        }
+
+        // === SERVICE MODAL ===
+        const serviceModal = document.getElementById('serviceModal');
+        const serviceModalContent = document.getElementById('serviceModalContent');
+        const serviceModalTitle = document.getElementById('serviceModalTitle');
+        const iconPicker = document.getElementById('iconPicker');
+        let editingId = null;
+        let selectedIcon = 'fa-cut';
+
+        iconPicker.querySelectorAll('.icon-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                iconPicker.querySelectorAll('.icon-option').forEach(b => {
+                    b.classList.remove('border-gold', 'text-gold', 'bg-gold/10');
+                    b.classList.add('border-gray-800', 'text-gray-400');
+                });
+                btn.classList.add('border-gold', 'text-gold', 'bg-gold/10');
+                btn.classList.remove('border-gray-800', 'text-gray-400');
+                selectedIcon = btn.dataset.icon;
+            });
+        });
+
+        function setIconInPicker(icon) {
+            selectedIcon = icon || 'fa-cut';
+            iconPicker.querySelectorAll('.icon-option').forEach(b => {
+                if (b.dataset.icon === selectedIcon) {
+                    b.classList.add('border-gold', 'text-gold', 'bg-gold/10');
+                    b.classList.remove('border-gray-800', 'text-gray-400');
+                } else {
+                    b.classList.remove('border-gold', 'text-gold', 'bg-gold/10');
+                    b.classList.add('border-gray-800', 'text-gray-400');
+                }
+            });
+        }
+
+        function showServiceModal() {
+            serviceModal.classList.remove('hidden');
+            setTimeout(() => {
+                serviceModal.classList.remove('opacity-0');
+                serviceModalContent.classList.remove('scale-95');
+                serviceModalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function openServiceModal(id) {
+            const svc = services.find(s => s.id === id);
+            if (!svc) return;
+            editingId = id;
+            serviceModalTitle.textContent = 'Upravit službu';
+            document.getElementById('serviceModalName').value = svc.name || '';
+            document.getElementById('serviceModalCategory').value = svc.category || 'Dámské';
+            document.getElementById('serviceModalDuration').value = svc.duration || '';
+            document.getElementById('serviceModalPrice').value = svc.price ?? '';
+            setIconInPicker(svc.icon);
+            showServiceModal();
+        }
+
+        function openServiceModalForAdd() {
+            editingId = null;
+            serviceModalTitle.textContent = 'Přidat službu';
+            document.getElementById('serviceModalName').value = '';
+            document.getElementById('serviceModalCategory').value = 'Dámské';
+            document.getElementById('serviceModalDuration').value = '';
+            document.getElementById('serviceModalPrice').value = '';
+            setIconInPicker('fa-cut');
+            showServiceModal();
+        }
+
+        function closeServiceModal() {
+            serviceModal.classList.add('opacity-0');
+            serviceModalContent.classList.remove('scale-100');
+            serviceModalContent.classList.add('scale-95');
+            setTimeout(() => {
+                serviceModal.classList.add('hidden');
+                editingId = null;
+            }, 300);
+        }
+
+        function saveService(event) {
+            event.preventDefault();
+            const name = document.getElementById('serviceModalName').value.trim();
+            const category = document.getElementById('serviceModalCategory').value;
+            const duration = document.getElementById('serviceModalDuration').value.trim();
+            const priceRaw = document.getElementById('serviceModalPrice').value;
+            const price = priceRaw === '' ? 0 : Number(priceRaw);
+
+            if (!name) return;
+
+            if (editingId !== null) {
+                const svc = services.find(s => s.id === editingId);
+                if (svc) {
+                    svc.name = name;
+                    svc.category = category;
+                    svc.duration = duration;
+                    svc.price = price;
+                    svc.icon = selectedIcon;
+                }
+            } else {
+                services.push({
+                    id: nextServiceId(),
+                    icon: selectedIcon,
+                    name, category, duration, price
+                });
+            }
+
+            persistServices();
+            renderServices();
+            closeServiceModal();
+        }
+
+        function deleteService(id) {
+            const svc = services.find(s => s.id === id);
+            if (!svc) return;
+            if (!confirm(`Opravdu chcete smazat službu „${svc.name}"?`)) return;
+            services = services.filter(s => s.id !== id);
+            persistServices();
+            renderServices();
+        }
+
+        serviceModal.addEventListener('click', (e) => {
+            if (e.target === serviceModal) closeServiceModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !serviceModal.classList.contains('hidden')) {
+                closeServiceModal();
+            }
+        });
+
+        renderServices();
+
+        // === KALENDÁŘ ===
+        const monthNames = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
+
+        // Demo data: rezervace v jednotlivých dnech (formát: "YYYY-M-D" -> počet rezervací)
+        const bookingsData = {
+            '2026-5-6': 1, '2026-5-15': 3, '2026-5-16': 1, '2026-5-17': 1,
+            '2026-5-18': 1, '2026-5-19': 1, '2026-5-20': 1, '2026-5-22': 1,
+            '2026-5-23': 1, '2026-5-25': 2, '2026-5-26': 1, '2026-5-30': 1,
+            '2026-6-3': 2, '2026-6-8': 1, '2026-6-12': 1, '2026-6-15': 2,
+            '2026-6-22': 1, '2026-6-29': 1,
+            '2026-4-28': 1, '2026-4-30': 1
+        };
+
+        let calCurrentMonth = 4; // 0-indexovaný (4 = květen)
+        let calCurrentYear = 2026;
+        let calSelectedDate = { day: 15, month: 4, year: 2026 };
+
+        function renderCalendar() {
+            const grid = document.getElementById('calGrid');
+            const label = document.getElementById('calMonthLabel');
+            label.textContent = `${monthNames[calCurrentMonth]} ${calCurrentYear}`;
+
+            // Den v týdnu prvního dne (Po=0, ... Ne=6)
+            const firstDay = new Date(calCurrentYear, calCurrentMonth, 1);
+            let firstDayOfWeek = firstDay.getDay() - 1;
+            if (firstDayOfWeek < 0) firstDayOfWeek = 6; // neděle
+
+            // Počet dní v měsíci
+            const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+            // Počet dní v předchozím měsíci
+            const daysInPrevMonth = new Date(calCurrentYear, calCurrentMonth, 0).getDate();
+
+            grid.innerHTML = '';
+
+            // Dny z předchozího měsíce (zšeřené)
+            for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                grid.innerHTML += `<div class="p-3 text-gray-700 opacity-50">${day}</div>`;
+            }
+
+            // Aktuální měsíc
+            const today = new Date();
+            const todayDay = today.getDate();
+            const todayMonth = today.getMonth();
+            const todayYear = today.getFullYear();
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(calCurrentYear, calCurrentMonth, day);
+                let dayOfWeek = date.getDay() - 1;
+                if (dayOfWeek < 0) dayOfWeek = 6;
+
+                const isSunday = dayOfWeek === 6;
+                const isToday = day === todayDay && calCurrentMonth === todayMonth && calCurrentYear === todayYear;
+                const isSelected = day === calSelectedDate.day && calCurrentMonth === calSelectedDate.month && calCurrentYear === calSelectedDate.year;
+                const bookingKey = `${calCurrentYear}-${calCurrentMonth + 1}-${day}`;
+                const hasBooking = bookingsData[bookingKey];
+
+                let classes = 'p-3 rounded cursor-pointer transition-colors relative ';
+                let textColor = '';
+
+                if (isSelected) {
+                    classes += 'text-black bg-gold-gradient font-bold shadow-[0_0_15px_rgba(197,160,89,0.5)] transform scale-105 ';
+                } else {
+                    classes += 'bg-black/40 hover:bg-gray-800 hover:text-white ';
+                    if (isSunday) {
+                        textColor = 'text-red-400/50';
+                    } else {
+                        textColor = 'text-gray-300';
+                    }
+                }
+                if (isToday && !isSelected) {
+                    classes += 'ring-1 ring-gold/60 ';
+                }
+
+                let dotHtml = '';
+                if (hasBooking) {
+                    const dotColor = isSelected ? 'bg-black' : 'bg-gold';
+                    dotHtml = `<span class="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 ${dotColor} rounded-full"></span>`;
+                }
+
+                grid.innerHTML += `<div class="${classes} ${textColor}" data-day="${day}" data-month="${calCurrentMonth}" data-year="${calCurrentYear}" onclick="selectDay(this)">${day}${dotHtml}</div>`;
+            }
+
+            // Dny z následujícího měsíce, abychom vyplnili řádek
+            const totalCells = firstDayOfWeek + daysInMonth;
+            const remaining = (7 - (totalCells % 7)) % 7;
+            for (let day = 1; day <= remaining; day++) {
+                grid.innerHTML += `<div class="p-3 text-gray-700 opacity-50">${day}</div>`;
+            }
+        }
+
+        function selectDay(el) {
+            const day = parseInt(el.dataset.day);
+            const month = parseInt(el.dataset.month);
+            const year = parseInt(el.dataset.year);
+            calSelectedDate = { day, month, year };
+            renderCalendar();
+        }
+
+        document.getElementById('calPrev').addEventListener('click', () => {
+            calCurrentMonth--;
+            if (calCurrentMonth < 0) {
+                calCurrentMonth = 11;
+                calCurrentYear--;
+            }
+            renderCalendar();
+        });
+
+        document.getElementById('calNext').addEventListener('click', () => {
+            calCurrentMonth++;
+            if (calCurrentMonth > 11) {
+                calCurrentMonth = 0;
+                calCurrentYear++;
+            }
+            renderCalendar();
+        });
+
+        document.getElementById('calToday').addEventListener('click', () => {
+            const t = new Date();
+            calCurrentMonth = t.getMonth();
+            calCurrentYear = t.getFullYear();
+            calSelectedDate = { day: t.getDate(), month: t.getMonth(), year: t.getFullYear() };
+            renderCalendar();
+        });
+
+        renderCalendar();
+
+        // === OTEVÍRACÍ DOBA - data-driven s pauzou + cache ===
+        const HOURS_KEY = 'vkadernictvi_hours_v1';
+        const DEFAULT_HOURS = [
+            { id: 'pondeli', name: 'Pondělí', open: true,  from: '09:00', to: '17:00', breakEnabled: false, breakFrom: '12:00', breakTo: '13:00' },
+            { id: 'utery',   name: 'Úterý',   open: true,  from: '09:00', to: '17:00', breakEnabled: false, breakFrom: '12:00', breakTo: '13:00' },
+            { id: 'streda',  name: 'Středa',  open: true,  from: '10:00', to: '18:00', breakEnabled: false, breakFrom: '12:00', breakTo: '13:00' },
+            { id: 'ctvrtek', name: 'Čtvrtek', open: true,  from: '09:00', to: '17:00', breakEnabled: false, breakFrom: '12:00', breakTo: '13:00' },
+            { id: 'patek',   name: 'Pátek',   open: false, from: '09:00', to: '17:00', breakEnabled: false, breakFrom: '12:00', breakTo: '13:00' },
+            { id: 'sobota',  name: 'Sobota',  open: false, from: '09:00', to: '14:00', breakEnabled: false, breakFrom: '12:00', breakTo: '13:00' },
+            { id: 'nedele',  name: 'Neděle',  open: false, from: '10:00', to: '14:00', breakEnabled: false, breakFrom: '12:00', breakTo: '13:00' }
+        ];
+
+        let hoursData = loadHours();
+
+        function loadHours() {
+            try {
+                const cached = localStorage.getItem(HOURS_KEY);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    // Doplnění nových polí pro starší cache
+                    return parsed.map(d => ({
+                        breakEnabled: false, breakFrom: '12:00', breakTo: '13:00', ...d
+                    }));
+                }
+            } catch (e) { console.warn('Nelze načíst hodiny:', e); }
+            return JSON.parse(JSON.stringify(DEFAULT_HOURS));
+        }
+
+        function persistHours() {
+            try {
+                localStorage.setItem(HOURS_KEY, JSON.stringify(hoursData));
+            } catch (e) { console.warn('Nelze uložit hodiny:', e); }
+        }
+
+        function renderHours() {
+            const list = document.getElementById('hoursList');
+            if (!list) return;
+
+            list.innerHTML = hoursData.map(d => {
+                const rowClasses = d.open
+                    ? 'bg-black/40 hover:bg-black/60'
+                    : 'bg-red-900/10 border border-red-900/30';
+
+                const toggleBg = d.open ? 'bg-green-700' : 'bg-gray-700';
+                const dotClasses = d.open ? 'translate-x-5 bg-white' : 'translate-x-1 bg-gray-400';
+                const nameColor = d.open ? 'text-white' : 'text-gray-500';
+
+                // Časy + pauza (pouze když otevřeno)
+                const timesBlock = d.open ? `
+                    <div class="flex items-center gap-1.5 flex-1 justify-end min-w-0">
+                        <input type="time" value="${d.from}" data-day="${d.id}" data-field="from" class="time-input p-1.5 text-xs sm:text-sm rounded bg-black/60 border border-gray-700 text-white w-[70px] sm:w-[88px] focus:border-gold focus:outline-none">
+                        <span class="text-gray-500 text-xs">–</span>
+                        <input type="time" value="${d.to}" data-day="${d.id}" data-field="to" class="time-input p-1.5 text-xs sm:text-sm rounded bg-black/60 border border-gray-700 text-white w-[70px] sm:w-[88px] focus:border-gold focus:outline-none">
+                        ${!d.breakEnabled ? `
+                            <button type="button" onclick="addBreak('${d.id}')" title="Přidat pauzu" class="flex-shrink-0 w-7 h-7 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 rounded text-gold/80 hover:text-gold border border-gold/30 hover:border-gold hover:bg-gold/5 transition-all flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-wider">
+                                <i class="fas fa-plus text-[10px]"></i><span class="hidden sm:inline">Pauza</span>
+                            </button>
+                        ` : `
+                            <span class="hidden sm:inline-flex w-7 h-7 sm:w-auto sm:h-auto sm:px-2 sm:py-1.5 rounded text-gold/40 items-center justify-center" title="Pauza nastavena"><i class="fas fa-mug-hot text-xs"></i></span>
+                        `}
+                    </div>
+                ` : '<span class="text-red-500/70 text-xs font-semibold uppercase tracking-widest">Zavřeno</span>';
+
+                // Druhý řádek pro pauzu
+                const breakRow = (d.open && d.breakEnabled) ? `
+                    <div class="mt-2 pt-2 border-t border-gold/10 flex items-center gap-1.5 animate-[fadeIn_0.25s_ease]">
+                        <span class="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-gold/80 flex-shrink-0">
+                            <i class="fas fa-mug-hot text-gold/70 text-xs"></i><span class="hidden sm:inline">Pauza</span>
+                        </span>
+                        <div class="flex items-center gap-1.5 flex-1 justify-end min-w-0">
+                            <input type="time" value="${d.breakFrom}" data-day="${d.id}" data-field="breakFrom" class="time-input p-1.5 text-xs sm:text-sm rounded bg-black/60 border border-gold/30 text-white w-[70px] sm:w-[88px] focus:border-gold focus:outline-none">
+                            <span class="text-gray-500 text-xs">–</span>
+                            <input type="time" value="${d.breakTo}" data-day="${d.id}" data-field="breakTo" class="time-input p-1.5 text-xs sm:text-sm rounded bg-black/60 border border-gold/30 text-white w-[70px] sm:w-[88px] focus:border-gold focus:outline-none">
+                            <button type="button" onclick="removeBreak('${d.id}')" title="Odebrat pauzu" class="flex-shrink-0 w-7 h-7 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center justify-center">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                ` : '';
+
+                return `
+                <div class="day-row ${rowClasses} px-3 py-2.5 rounded-md transition-colors" data-day="${d.id}">
+                    <div class="flex items-center gap-2.5">
+                        <button type="button" onclick="toggleDay('${d.id}')" class="day-toggle relative inline-flex h-5 w-9 items-center rounded-full ${toggleBg} transition-colors flex-shrink-0" title="${d.open ? 'Otevřeno – kliknutím zavřít' : 'Zavřeno – kliknutím otevřít'}">
+                            <span class="day-toggle-dot inline-block h-3 w-3 transform rounded-full transition-transform ${dotClasses}"></span>
+                        </button>
+                        <div class="${nameColor} font-medium text-sm w-14 sm:w-20 flex-shrink-0">${d.name}</div>
+                        ${timesBlock}
+                    </div>
+                    ${breakRow}
+                </div>`;
+            }).join('');
+
+            // Aktualizace času při změně inputu (živé synchronizace s daty)
+            list.querySelectorAll('input[type="time"]').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const id = e.target.dataset.day;
+                    const field = e.target.dataset.field;
+                    const day = hoursData.find(d => d.id === id);
+                    if (day) {
+                        day[field] = e.target.value;
+                        persistHours();
+                    }
+                });
+            });
+        }
+
+        function toggleDay(id) {
+            const day = hoursData.find(d => d.id === id);
+            if (!day) return;
+            day.open = !day.open;
+            persistHours();
+            renderHours();
+        }
+
+        function addBreak(id) {
+            const day = hoursData.find(d => d.id === id);
+            if (!day) return;
+            day.breakEnabled = true;
+            persistHours();
+            renderHours();
+        }
+
+        function removeBreak(id) {
+            const day = hoursData.find(d => d.id === id);
+            if (!day) return;
+            day.breakEnabled = false;
+            persistHours();
+            renderHours();
+        }
+
+        function saveHours() {
+            persistHours();
+            const btn = event.currentTarget;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check mr-2"></i>Uloženo';
+            btn.classList.add('brightness-110');
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.classList.remove('brightness-110');
+            }, 1500);
+        }
+
+        renderHours();
+    </script>
+</body>
+</html>
