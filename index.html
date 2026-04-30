@@ -120,11 +120,22 @@
         }
         .datetime-input::-webkit-datetime-edit { color: #fff; padding: 0; }
         .datetime-input::-webkit-datetime-edit-fields-wrapper { color: #fff; padding: 0; }
-        .datetime-input:invalid::-webkit-datetime-edit,
-        .datetime-input:not([data-touched])::-webkit-datetime-edit { color: #6b7280; }
         .datetime-input::-webkit-datetime-edit-text { color: #c5a059; padding: 0 3px; }
-        /* Placeholder text uvnitř (vlastní), když není vybráno - kvůli iOS */
-        .datetime-input[data-empty="true"]::-webkit-date-and-time-value { color: transparent; }
+
+        /* Když není vybráno - skrýt VŠECHEN nativní text/placeholder, ukázat náš vlastní */
+        .datetime-input[data-empty="true"]::-webkit-datetime-edit,
+        .datetime-input[data-empty="true"]::-webkit-datetime-edit-fields-wrapper,
+        .datetime-input[data-empty="true"]::-webkit-datetime-edit-text,
+        .datetime-input[data-empty="true"]::-webkit-datetime-edit-month-field,
+        .datetime-input[data-empty="true"]::-webkit-datetime-edit-day-field,
+        .datetime-input[data-empty="true"]::-webkit-datetime-edit-year-field,
+        .datetime-input[data-empty="true"]::-webkit-datetime-edit-hour-field,
+        .datetime-input[data-empty="true"]::-webkit-datetime-edit-minute-field,
+        .datetime-input[data-empty="true"]::-webkit-datetime-edit-ampm-field,
+        .datetime-input[data-empty="true"]::-webkit-date-and-time-value {
+            color: transparent !important;
+            -webkit-text-fill-color: transparent !important;
+        }
         .datetime-wrapper { display: block; }
         .datetime-placeholder {
             position: absolute;
