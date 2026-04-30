@@ -139,6 +139,69 @@
         }
         .datetime-input:not([data-empty="true"]) ~ .datetime-placeholder { opacity: 0; }
 
+        /* Volné termíny - tlačítka */
+        .slot-btn {
+            position: relative;
+            padding: 0.65rem 0.5rem;
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            color: #e5e7eb;
+            font-size: 0.875rem;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.02em;
+        }
+        .slot-btn:hover:not(:disabled):not(.selected) {
+            border-color: #c5a059;
+            color: #c5a059;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.15);
+        }
+        .slot-btn.selected {
+            background: linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+            border-color: #c5a059;
+            color: #0a0a0a;
+            font-weight: 700;
+            box-shadow: 0 0 18px rgba(197, 160, 89, 0.35);
+        }
+        .slot-btn:disabled {
+            background: transparent;
+            border-color: #1f1f1f;
+            color: #4b5563;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            text-decoration-color: rgba(75, 85, 99, 0.4);
+        }
+        .slot-btn:disabled::after {
+            content: "obsazeno";
+            position: absolute;
+            inset: auto 0 0.05rem 0;
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #6b7280;
+            text-decoration: none;
+            opacity: 0.7;
+        }
+        @keyframes slotIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slot-btn { animation: slotIn 0.3s ease both; }
+
+        /* Tmavá Google mapa - invertování barev s úpravou hue, aby barvy zůstaly přirozené */
+        .map-dark { background: #0a0a0a; }
+        .map-dark iframe {
+            filter: invert(0.92) hue-rotate(180deg) saturate(0.85) brightness(0.95) contrast(0.95);
+            transition: filter 0.4s ease;
+        }
+        .map-dark:hover iframe {
+            filter: invert(0.88) hue-rotate(180deg) saturate(0.95) brightness(1) contrast(1);
+        }
+
         /* Stylování tabulky */
         table {
             border-collapse: collapse;
@@ -953,27 +1016,44 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="date" class="block text-xs uppercase tracking-wider text-gray-500 mb-2">
-                            <i class="far fa-calendar-alt text-gold mr-1"></i> Preferovaný den
-                        </label>
-                        <div class="datetime-wrapper relative">
-                            <input type="date" id="date" required class="w-full px-4 py-3 text-sm pr-12 datetime-input">
-                            <span class="datetime-placeholder" data-for="date">Vyberte den</span>
-                            <i class="far fa-calendar-alt absolute right-4 top-1/2 -translate-y-1/2 text-gold pointer-events-none text-base"></i>
-                        </div>
+                <div>
+                    <label for="date" class="block text-xs uppercase tracking-wider text-gray-500 mb-2">
+                        <i class="far fa-calendar-alt text-gold mr-1"></i> Preferovaný den
+                    </label>
+                    <div class="datetime-wrapper relative">
+                        <input type="date" id="date" required class="w-full px-4 py-3 text-sm pr-12 datetime-input">
+                        <span class="datetime-placeholder" data-for="date">Vyberte den</span>
+                        <i class="far fa-calendar-alt absolute right-4 top-1/2 -translate-y-1/2 text-gold pointer-events-none text-base"></i>
                     </div>
-                    <div>
-                        <label for="time" class="block text-xs uppercase tracking-wider text-gray-500 mb-2">
-                            <i class="far fa-clock text-gold mr-1"></i> Preferovaný čas
+                </div>
+
+                <!-- Volné termíny - generuje JS po výběru data -->
+                <div id="slots-section">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="block text-xs uppercase tracking-wider text-gray-500">
+                            <i class="far fa-clock text-gold mr-1"></i> Volné termíny
                         </label>
-                        <div class="datetime-wrapper relative">
-                            <input type="time" id="time" required class="w-full px-4 py-3 text-sm pr-12 datetime-input">
-                            <span class="datetime-placeholder" data-for="time">Vyberte čas</span>
-                            <i class="far fa-clock absolute right-4 top-1/2 -translate-y-1/2 text-gold pointer-events-none text-base"></i>
-                        </div>
+                        <span id="slots-info" class="text-[11px] text-gray-500 font-light"></span>
                     </div>
+
+                    <!-- Stav: před výběrem data -->
+                    <div id="slots-empty" class="border border-dashed border-gray-800 rounded p-6 text-center">
+                        <i class="far fa-calendar-alt text-gold/40 text-2xl mb-2 block"></i>
+                        <p class="text-sm text-gray-500">Nejprve zvolte preferovaný den</p>
+                    </div>
+
+                    <!-- Stav: zavřený den -->
+                    <div id="slots-closed" class="hidden border border-red-900/30 bg-red-900/5 rounded p-6 text-center">
+                        <i class="fas fa-times-circle text-red-500/70 text-2xl mb-2 block"></i>
+                        <p class="text-sm text-gray-300 font-medium">V tento den je zavřeno</p>
+                        <p class="text-xs text-gray-500 mt-1">Zvolte prosím jiný termín</p>
+                    </div>
+
+                    <!-- Stav: vyplněné sloty -->
+                    <div id="slots-grid" class="hidden grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2"></div>
+
+                    <!-- Skrytý input pro odeslání času -->
+                    <input type="hidden" id="time" name="time">
                 </div>
 
                 <div>
@@ -1065,12 +1145,11 @@
                 </div>
 
                 <!-- Google mapa -->
-                <div class="reveal delay-1 border border-gray-800 relative shadow-2xl overflow-hidden min-h-[400px] lg:min-h-0">
+                <div class="map-dark reveal delay-1 border border-gray-800 relative shadow-2xl overflow-hidden min-h-[400px] lg:min-h-0">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gold-gradient z-10"></div>
                     <iframe
                         src="https://www.google.com/maps?q=Edvarda+Bene%C5%A1e+1467%2C+272+01+Kladno&output=embed"
                         class="w-full h-full min-h-[400px]"
-                        style="border:0; filter: grayscale(0.3) contrast(1.1);"
                         allowfullscreen=""
                         loading="lazy"
                         referrerpolicy="no-referrer-when-downgrade"
@@ -1274,11 +1353,11 @@
             }
         });
 
-        // Date/time inputy - placeholder + minimální datum dnešek
+        // Date input - placeholder + minimální datum dnešek + volné termíny
         (function setupDatetimeInputs() {
             const dateEl = document.getElementById('date');
             const timeEl = document.getElementById('time');
-            if (!dateEl || !timeEl) return;
+            if (!dateEl) return;
 
             // Minimální datum: dnešek
             const today = new Date();
@@ -1287,15 +1366,118 @@
             const dd = String(today.getDate()).padStart(2, '0');
             dateEl.min = `${yyyy}-${mm}-${dd}`;
 
-            const sync = (el) => {
-                el.dataset.empty = el.value ? 'false' : 'true';
+            const syncEmpty = (el) => { el.dataset.empty = el.value ? 'false' : 'true'; };
+            syncEmpty(dateEl);
+            ['input', 'change', 'blur'].forEach(ev => dateEl.addEventListener(ev, () => syncEmpty(dateEl)));
+
+            // === Volné termíny - demo data ===
+            const SLOTS_BY_DAY = {
+                // 0=Ne, 1=Po, 2=Út, 3=St, 4=Čt, 5=Pá, 6=So
+                0: null, // zavřeno
+                1: { from: '09:00', to: '17:00' },
+                2: { from: '09:00', to: '17:00' },
+                3: { from: '10:00', to: '18:00' },
+                4: { from: '09:00', to: '17:00' },
+                5: null, // zavřeno
+                6: null, // zavřeno
             };
-            [dateEl, timeEl].forEach(el => {
-                sync(el);
-                el.addEventListener('input', () => sync(el));
-                el.addEventListener('change', () => sync(el));
-                el.addEventListener('blur', () => sync(el));
-            });
+            const SLOT_STEP_MIN = 30;
+
+            const slotsGrid = document.getElementById('slots-grid');
+            const slotsEmpty = document.getElementById('slots-empty');
+            const slotsClosed = document.getElementById('slots-closed');
+            const slotsInfo = document.getElementById('slots-info');
+
+            // Deterministicky obsazené sloty pro daný den (demo data)
+            function takenForDate(dateStr) {
+                let hash = 0;
+                for (let i = 0; i < dateStr.length; i++) hash = (hash * 31 + dateStr.charCodeAt(i)) | 0;
+                const seed = Math.abs(hash);
+                const taken = new Set();
+                // ~30 % slotů obsazeno deterministicky
+                for (let i = 0; i < 5; i++) taken.add((seed + i * 7) % 16);
+                return taken;
+            }
+
+            function buildSlots(from, to, step) {
+                const [fh, fm] = from.split(':').map(Number);
+                const [th, tm] = to.split(':').map(Number);
+                const start = fh * 60 + fm;
+                const end = th * 60 + tm;
+                const list = [];
+                for (let m = start; m < end; m += step) {
+                    const hh = String(Math.floor(m / 60)).padStart(2, '0');
+                    const mm = String(m % 60).padStart(2, '0');
+                    list.push(`${hh}:${mm}`);
+                }
+                return list;
+            }
+
+            function setSelected(time) {
+                timeEl.value = time;
+                slotsGrid.querySelectorAll('.slot-btn').forEach(btn => {
+                    btn.classList.toggle('selected', btn.dataset.time === time);
+                });
+                if (slotsInfo && time) slotsInfo.textContent = `Vybraný čas: ${time}`;
+            }
+
+            function renderSlots() {
+                timeEl.value = '';
+                slotsInfo.textContent = '';
+
+                if (!dateEl.value) {
+                    slotsEmpty.classList.remove('hidden');
+                    slotsClosed.classList.add('hidden');
+                    slotsGrid.classList.add('hidden');
+                    slotsGrid.innerHTML = '';
+                    return;
+                }
+
+                const d = new Date(dateEl.value + 'T00:00');
+                const dayCfg = SLOTS_BY_DAY[d.getDay()];
+
+                if (!dayCfg) {
+                    slotsEmpty.classList.add('hidden');
+                    slotsClosed.classList.remove('hidden');
+                    slotsGrid.classList.add('hidden');
+                    slotsGrid.innerHTML = '';
+                    return;
+                }
+
+                const list = buildSlots(dayCfg.from, dayCfg.to, SLOT_STEP_MIN);
+                const taken = takenForDate(dateEl.value);
+                const free = list.length - [...taken].filter(i => i < list.length).length;
+
+                slotsGrid.innerHTML = list.map((t, i) => {
+                    const disabled = taken.has(i);
+                    return `<button type="button" class="slot-btn" data-time="${t}" ${disabled ? 'disabled' : ''} style="animation-delay:${i * 25}ms">${t}</button>`;
+                }).join('');
+
+                slotsEmpty.classList.add('hidden');
+                slotsClosed.classList.add('hidden');
+                slotsGrid.classList.remove('hidden');
+                slotsInfo.textContent = `${free} volných termínů`;
+
+                slotsGrid.querySelectorAll('.slot-btn:not(:disabled)').forEach(btn => {
+                    btn.addEventListener('click', () => setSelected(btn.dataset.time));
+                });
+            }
+
+            ['change', 'input'].forEach(ev => dateEl.addEventListener(ev, renderSlots));
+            renderSlots();
+
+            // Validace při odeslání: musí být zvolený slot
+            const form = document.getElementById('booking-form') || dateEl.closest('form');
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    if (!timeEl.value) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        slotsInfo.innerHTML = '<span class="text-red-400">Prosím zvolte volný termín</span>';
+                        slotsGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, true);
+            }
         })();
     </script>
 </body>
