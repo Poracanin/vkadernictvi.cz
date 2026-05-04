@@ -158,6 +158,7 @@
     function initNavbarAndBackToTop() {
         const nav = $('navbar');
         const backToTopBtn = $('back-to-top');
+        const kontakt = $('kontakt');
 
         const onScroll = () => {
             if (nav) {
@@ -169,12 +170,32 @@
                     nav.classList.add('bg-dark/90');
                 }
             }
-            if (backToTopBtn) {
-                backToTopBtn.classList.toggle('visible', window.scrollY > 400);
-            }
         };
 
         window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+
+        /*
+         * Tlačítko „nahoru“ až v sekci Kontakt.
+         * Nepoužíváme minimální intersectionRatio — u vysoké sekce by pak tlačítko nemuselo nikdy naskočit.
+         */
+        if (backToTopBtn && kontakt && 'IntersectionObserver' in window) {
+            const observer = new IntersectionObserver(
+                ([entry]) => {
+                    backToTopBtn.classList.toggle('visible', entry.isIntersecting);
+                },
+                { threshold: [0, 0.001] }
+            );
+            observer.observe(kontakt);
+        } else if (backToTopBtn && kontakt) {
+            const updateBackToTop = () => {
+                const rect = kontakt.getBoundingClientRect();
+                const inView = rect.top < window.innerHeight && rect.bottom > 0;
+                backToTopBtn.classList.toggle('visible', inView);
+            };
+            window.addEventListener('scroll', updateBackToTop, { passive: true });
+            updateBackToTop();
+        }
 
         if (backToTopBtn) {
             backToTopBtn.addEventListener('click', () => {
