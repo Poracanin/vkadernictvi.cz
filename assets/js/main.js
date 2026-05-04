@@ -253,7 +253,7 @@
         document.querySelectorAll('.picker-btn.selected').forEach((b) => b.classList.remove('selected'));
         $('subcategory-section').classList.add('hidden');
         $('service-section').classList.add('hidden');
-        showDatetimePlaceholder();
+        showHideBookingDatetime(false);
         formState = { category: null, subcategory: null, serviceId: null };
     }
 
@@ -502,7 +502,7 @@
         const subSection     = $('subcategory-section');
         const serviceSection = $('service-section');
 
-        showDatetimePlaceholder();
+        showHideBookingDatetime(false);
 
         if (cat && Array.isArray(cat.subcategories) && cat.subcategories.length) {
             renderSubcategoryPicker(cat.subcategories);
@@ -515,14 +515,10 @@
         }
     }
 
-    function showDatetimePlaceholder() {
-        $('datetime-placeholder').classList.remove('hidden');
-        $('datetime-section').classList.add('hidden');
-    }
-
-    function showDatetimeSection() {
-        $('datetime-placeholder').classList.add('hidden');
-        $('datetime-section').classList.remove('hidden');
+    function showHideBookingDatetime(visible) {
+        const el = $('datetime-section');
+        if (!el) return;
+        el.classList.toggle('hidden', !visible);
     }
 
     function renderSubcategoryPicker(subs) {
@@ -554,7 +550,7 @@
 
         renderServicePicker();
         $('service-section').classList.remove('hidden');
-        showDatetimePlaceholder();
+        showHideBookingDatetime(false);
     }
 
     function renderServicePicker() {
@@ -599,7 +595,7 @@
             b.classList.toggle('selected', Number(b.dataset.serviceId) === id);
         });
 
-        showDatetimeSection();
+        showHideBookingDatetime(true);
         // Scroll jen na mobilu (na PC je termín hned vedle)
         if (window.matchMedia('(max-width: 1023px)').matches) {
             $('datetime-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -623,7 +619,7 @@
                 formState = { category: null, subcategory: null, serviceId: null };
                 $('subcategory-section').classList.add('hidden');
                 $('service-section').classList.add('hidden');
-                showDatetimePlaceholder();
+                showHideBookingDatetime(false);
             }
         });
     }

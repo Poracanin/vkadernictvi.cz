@@ -38,7 +38,7 @@
                     backgroundImage: {
                         'gold-gradient':       'linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%)',
                         'gold-gradient-hover': 'linear-gradient(135deg, #fdf1cd 0%, #d4af37 50%, #a68541 100%)',
-                        'dark-gradient':       'linear-gradient(180deg, rgba(10,10,10,0.8) 0%, rgba(10,10,10,1) 100%)'
+                        'dark-gradient':       'linear-gradient(180deg, rgba(10,10,10,0.45) 0%, rgba(10,10,10,0.82) 100%)'
                     }
                 }
             }
@@ -153,7 +153,7 @@
     <section class="relative min-h-[100vh] md:min-h-[90vh] overflow-hidden flex flex-col">
         <!-- Pozadí s obrázkem a překrytím -->
         <div class="absolute inset-0 z-0">
-            <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Kadeřnictví pozadí" class="w-full h-full object-cover object-center opacity-30">
+            <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Kadeřnictví pozadí" class="w-full h-full object-cover object-center opacity-50">
             <div class="absolute inset-0 bg-dark-gradient"></div>
         </div>
 
@@ -384,7 +384,8 @@
 
                 <!-- 1) Osobní údaje (přes celou šířku) -->
                 <div>
-                    <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-4">Krok 1 — Vaše údaje</p>
+                    <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-1.5">Krok 1 — Vaše údaje</p>
+                    <p class="text-[11px] text-gray-500 font-light mb-4 max-w-2xl">Vyplňte jméno, příjmení, e-mail a telefon — až vás budu moct kontaktovat ohledně termínu.</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                         <div>
                             <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Jméno</label>
@@ -412,7 +413,8 @@
                     <div class="space-y-8">
                         <!-- 2) Kategorie -->
                         <div>
-                            <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-4">Krok 2 — Kategorie</p>
+                            <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-1.5">Krok 2 — Kategorie</p>
+                            <p class="text-[11px] text-gray-500 font-light mb-4">Zvolte, zda jde o dámské, pánské nebo dětské služby.</p>
                             <div id="category-picker" class="grid grid-cols-3 gap-3">
                                 <!-- Generováno JS z services.json -->
                             </div>
@@ -421,7 +423,8 @@
 
                         <!-- 3) Podkategorie (jen pro Dámské) -->
                         <div id="subcategory-section" class="hidden">
-                            <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-4">Krok 3 — Typ návštěvy</p>
+                            <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-1.5">Krok 3 — Typ návštěvy</p>
+                            <p class="text-[11px] text-gray-500 font-light mb-4">U dámských služeb zvolte, jestli k nám chodíte poprvé, nebo pravidelně.</p>
                             <div id="subcategory-picker" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <!-- Generováno JS -->
                             </div>
@@ -430,7 +433,8 @@
 
                         <!-- 4) Služba -->
                         <div id="service-section" class="hidden">
-                            <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-4">Vyberte službu</p>
+                            <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-1.5">Vyberte službu</p>
+                            <p class="text-[11px] text-gray-500 font-light mb-4">Klikněte na položku v seznamu — vpravo pak zvolíte den a čas.</p>
                             <div id="service-picker" class="space-y-2">
                                 <!-- Generováno JS -->
                             </div>
@@ -438,18 +442,12 @@
                         </div>
                     </div>
 
-                    <!-- PRAVÝ SLOUPEC: termín -->
+                    <!-- PRAVÝ SLOUPEC: termín (zobrazeno až po výběru služby) -->
                     <div class="space-y-6">
-                        <!-- Placeholder dokud není vybraná služba -->
-                        <div id="datetime-placeholder" class="border border-dashed border-gray-800 rounded p-10 text-center h-full flex flex-col items-center justify-center min-h-[300px]">
-                            <i class="far fa-calendar-alt text-gold/30 text-4xl mb-3"></i>
-                            <p class="text-sm text-gray-500 font-light">Nejprve vyberte službu</p>
-                            <p class="text-xs text-gray-600 mt-1">Poté zvolte den a čas rezervace</p>
-                        </div>
-
                         <!-- 5) Datum a čas -->
                         <div id="datetime-section" class="hidden space-y-6">
-                            <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase">Termín</p>
+                            <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-1.5">Termín</p>
+                            <p class="text-[11px] text-gray-500 font-light mb-4">Vyberte den a jeden z volných časů. Níže můžete přidat poznámku.</p>
                             <div>
                                 <label for="date" class="block text-xs uppercase tracking-wider text-gray-500 mb-2">
                                     <i class="far fa-calendar-alt text-gold mr-1"></i> Preferovaný den
