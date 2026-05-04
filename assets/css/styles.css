@@ -1,0 +1,594 @@
+/* =============================================================
+   Vkadeřnictví – globální styly
+   Soubor: assets/css/styles.css
+   ============================================================= */
+
+/* ---------- Základ ---------- */
+body {
+    background-color: #0a0a0a;
+    color: #d1d5db; /* gray-300 */
+    overflow-x: hidden;
+}
+
+/* ---------- Zlaté přechody (text/pozadí) ---------- */
+.text-gold-gradient {
+    background: linear-gradient(to bottom, #ebd197 0%, #c5a059 60%, #9c7b3b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.bg-gold-gradient {
+    background: linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+}
+
+/* ---------- Formulářové prvky (tmavý styl) ---------- */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    background-color: #141414;
+    border: 1px solid #333;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #c5a059;
+    box-shadow: 0 0 5px rgba(197, 160, 89, 0.3);
+}
+
+/* ---------- Datum a čas inputy ---------- */
+.datetime-input {
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    color-scheme: dark;
+    letter-spacing: 0.05em;
+    text-align: left;
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 48px;
+    font-size: 16px; /* zabraňuje auto-zoomu na iOS */
+    font-variant-numeric: tabular-nums;
+}
+
+/* iOS Safari – zarovnat hodnotu doleva */
+.datetime-input::-webkit-date-and-time-value {
+    text-align: left;
+    color: #fff;
+    font-size: 0.9rem;
+    min-height: 1.4em;
+}
+
+/* Webkit indikátor (kalendář / hodinky) */
+.datetime-input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    background: transparent;
+    color: transparent;
+}
+
+.datetime-input::-webkit-datetime-edit                  { color: #fff;     padding: 0; }
+.datetime-input::-webkit-datetime-edit-fields-wrapper   { color: #fff;     padding: 0; }
+.datetime-input::-webkit-datetime-edit-text             { color: #c5a059;  padding: 0 3px; }
+
+/* Když není vybráno – skrýt veškerý nativní text/placeholder */
+.datetime-input[data-empty="true"]::-webkit-datetime-edit,
+.datetime-input[data-empty="true"]::-webkit-datetime-edit-fields-wrapper,
+.datetime-input[data-empty="true"]::-webkit-datetime-edit-text,
+.datetime-input[data-empty="true"]::-webkit-datetime-edit-month-field,
+.datetime-input[data-empty="true"]::-webkit-datetime-edit-day-field,
+.datetime-input[data-empty="true"]::-webkit-datetime-edit-year-field,
+.datetime-input[data-empty="true"]::-webkit-datetime-edit-hour-field,
+.datetime-input[data-empty="true"]::-webkit-datetime-edit-minute-field,
+.datetime-input[data-empty="true"]::-webkit-datetime-edit-ampm-field,
+.datetime-input[data-empty="true"]::-webkit-date-and-time-value {
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+.datetime-wrapper { display: block; }
+
+.datetime-placeholder {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 0.875rem;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    letter-spacing: 0.05em;
+}
+
+.datetime-input:not([data-empty="true"]) ~ .datetime-placeholder { opacity: 0; }
+
+/* ---------- Volné termíny – tlačítka ---------- */
+.slot-btn {
+    position: relative;
+    padding: 0.65rem 0.5rem;
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    color: #e5e7eb;
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.02em;
+}
+
+.slot-btn:hover:not(:disabled):not(.selected) {
+    border-color: #c5a059;
+    color: #c5a059;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(197, 160, 89, 0.15);
+}
+
+.slot-btn.selected {
+    background: linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+    border-color: #c5a059;
+    color: #0a0a0a;
+    font-weight: 700;
+    box-shadow: 0 0 18px rgba(197, 160, 89, 0.35);
+}
+
+.slot-btn:disabled {
+    background: transparent;
+    border-color: #1f1f1f;
+    color: #4b5563;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    text-decoration-color: rgba(75, 85, 99, 0.4);
+}
+
+.slot-btn:disabled::after {
+    content: "obsazeno";
+    position: absolute;
+    inset: auto 0 0.05rem 0;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+    text-decoration: none;
+    opacity: 0.7;
+}
+
+/* ---------- Pickery v rezervačním formuláři ---------- */
+.picker-btn {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    color: #d1d5db;
+    padding: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 100%;
+}
+
+.picker-btn:hover:not(.selected) {
+    border-color: #c5a059;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.picker-btn.selected {
+    border-color: #c5a059;
+    background: linear-gradient(135deg, rgba(197, 160, 89, 0.15) 0%, rgba(197, 160, 89, 0.05) 100%);
+    color: #fff;
+    box-shadow: 0 0 0 1px #c5a059, 0 4px 14px rgba(197, 160, 89, 0.15);
+}
+
+.picker-btn .picker-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+}
+
+.picker-btn .picker-meta {
+    font-size: 0.75rem;
+    color: #6b7280;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.picker-btn.selected .picker-meta { color: #c5a059; }
+
+.picker-btn .picker-icon {
+    font-size: 1.5rem;
+    color: #c5a059;
+    margin-bottom: 0.5rem;
+}
+
+.picker-btn--category {
+    align-items: center;
+    text-align: center;
+    padding: 1.25rem 0.5rem;
+}
+
+/* ---------- Tmavá Google mapa ---------- */
+.map-dark { background: #0a0a0a; }
+
+.map-dark iframe {
+    filter: invert(0.92) hue-rotate(180deg) saturate(0.85) brightness(0.95) contrast(0.95);
+    transition: filter 0.4s ease;
+}
+
+.map-dark:hover iframe {
+    filter: invert(0.88) hue-rotate(180deg) saturate(0.95) brightness(1) contrast(1);
+}
+
+/* ---------- Tabulka ---------- */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th,
+td {
+    border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+    padding: 1rem;
+    text-align: left;
+}
+
+th {
+    font-weight: 600;
+    color: #c5a059;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+}
+
+tr:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ---------- Zlatý scrollbar ---------- */
+html {
+    scrollbar-color: #c5a059 #0a0a0a;
+    scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+    border-radius: 4px;
+    border: 2px solid #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #fdf1cd 0%, #d4af37 50%, #a68541 100%);
+}
+
+::-webkit-scrollbar-corner {
+    background: #0a0a0a;
+}
+
+/* =============================================================
+   Animace
+   ============================================================= */
+@keyframes pulseGold {
+    0%, 100% { box-shadow: 0 0 20px rgba(197, 160, 89, 0.4), 0 0 40px rgba(197, 160, 89, 0.1); }
+    50%      { box-shadow: 0 0 30px rgba(197, 160, 89, 0.7), 0 0 60px rgba(197, 160, 89, 0.2); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+}
+
+@keyframes scrollHint {
+    0%   { transform: translateY(0);  opacity: 0.4; }
+    50%  { transform: translateY(8px); opacity: 1;   }
+    100% { transform: translateY(0);  opacity: 0.4; }
+}
+
+@keyframes goldShine {
+    0%   { background-position: 0%   center; }
+    100% { background-position: 200% center; }
+}
+
+@keyframes borderGlow {
+    0%   { background-position: 0%   50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* ---------- Hero logo (vodoznak) ---------- */
+.hero-logo {
+    filter: grayscale(1) brightness(0.85) contrast(0.7);
+    opacity: 0.35;
+    object-fit: contain;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 60%, rgba(0, 0, 0, 0.5) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 60%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+/* ---------- Prémiová akční tlačítka ---------- */
+.btn-primary-gold {
+    background: linear-gradient(110deg,
+        #B38728 0%,  #BF953F 15%, #FDF5A6 30%, #BF953F 45%,
+        #B38728 60%, #BF953F 80%, #FDF5A6 100%);
+    background-size: 200% auto;
+    animation: goldShine 4s linear infinite;
+}
+
+.btn-primary-gold:hover { animation-duration: 2s; }
+
+.border-animated {
+    background: linear-gradient(90deg,
+        #111111 0%, #BF953F 25%, #FDF5A6 50%, #BF953F 75%, #111111 100%);
+    background-size: 200% auto;
+    animation: borderGlow 5s linear infinite;
+}
+
+.text-gold-shine {
+    background: linear-gradient(to right, #BF953F, #FDF5A6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    transition: background 0.5s ease;
+}
+
+.group:hover .text-gold-shine {
+    background: linear-gradient(to right, #FDF5A6, #BF953F);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ---------- Lesklé tlačítko (shimmer) ---------- */
+.btn-shimmer {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    animation: pulseGold 3.5s ease-in-out infinite;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.btn-shimmer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.55) 50%, transparent 100%);
+    transition: left 0.8s ease;
+    pointer-events: none;
+}
+
+.btn-shimmer:hover::before { left: 130%; }
+.btn-shimmer:hover         { transform: translateY(-2px); }
+
+/* ---------- Šipka „roluj dolů" ---------- */
+.scroll-hint {
+    animation: scrollHint 2s ease-in-out infinite;
+}
+
+/* ---------- Tlačítko „nahoru" ---------- */
+.back-to-top {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    background: rgba(20, 20, 20, 0.85);
+    color: #c5a059;
+    border: 1px solid rgba(197, 160, 89, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+    z-index: 45;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    background: rgba(197, 160, 89, 0.15);
+    border-color: rgba(197, 160, 89, 0.7);
+    color: #ebd197;
+}
+
+@media (min-width: 640px) {
+    .back-to-top {
+        right: 2rem;
+        bottom: 2rem;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1rem;
+    }
+}
+
+/* ---------- Plovoucí ikona u kontaktních dlaždic ---------- */
+.float-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* =============================================================
+   Navigace (navbar)
+   ============================================================= */
+#navbar .nav-inner { height: 5rem;   transition: height 0.3s ease; }
+#navbar .nav-logo  { height: 3.5rem; transition: height 0.3s ease; }
+
+@media (min-width: 640px) {
+    #navbar .nav-logo { height: 4rem; }
+}
+
+#navbar .nav-link            { font-size: 0.875rem; transition: font-size 0.3s ease, opacity 0.3s ease; }
+#navbar .nav-phone span,
+#navbar .nav-phone i         { font-size: 0.875rem; transition: font-size 0.3s ease; }
+
+#navbar .nav-cta {
+    font-size: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    transition: padding 0.3s ease, font-size 0.3s ease;
+}
+
+#navbar .nav-burger {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.5rem;
+    transition: width 0.3s ease, height 0.3s ease, font-size 0.3s ease;
+}
+
+/* Smrštěný navbar po scrollu */
+#navbar.scrolled .nav-inner { height: 3.5rem; }
+#navbar.scrolled .nav-logo  { height: 2.25rem; }
+
+@media (min-width: 640px) {
+    #navbar.scrolled .nav-logo { height: 2.5rem; }
+}
+
+#navbar.scrolled .nav-link             { font-size: 0.78rem; }
+#navbar.scrolled .nav-phone span,
+#navbar.scrolled .nav-phone i          { font-size: 0.78rem; }
+
+#navbar.scrolled .nav-cta {
+    font-size: 0.7rem;
+    padding: 0.45rem 1rem;
+}
+
+#navbar.scrolled .nav-burger {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.25rem;
+}
+
+/* =============================================================
+   Mobilní menu (modal)
+   ============================================================= */
+#mobile-menu-modal {
+    transition: opacity 0.4s ease;
+}
+
+#mobile-menu-modal.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#mobile-menu-modal .menu-link {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+#mobile-menu-modal.open .menu-link {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#mobile-menu-modal.open .menu-link:nth-child(1) { transition-delay: 0.15s; }
+#mobile-menu-modal.open .menu-link:nth-child(2) { transition-delay: 0.22s; }
+#mobile-menu-modal.open .menu-link:nth-child(3) { transition-delay: 0.29s; }
+#mobile-menu-modal.open .menu-link:nth-child(4) { transition-delay: 0.36s; }
+#mobile-menu-modal.open .menu-link:nth-child(5) { transition-delay: 0.43s; }
+#mobile-menu-modal.open .menu-link:nth-child(6) { transition-delay: 0.50s; }
+
+/* =============================================================
+   Položka služby v ceníku
+   ============================================================= */
+.service-item {
+    position: relative;
+    padding: 0.85rem 0.25rem;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.service-item::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(to right,
+        rgba(197, 160, 89, 0.55) 0%,
+        rgba(197, 160, 89, 0.18) 45%,
+        rgba(197, 160, 89, 0)    100%);
+    transition: background 0.3s ease;
+}
+
+.service-item:hover {
+    transform: translateX(4px);
+}
+
+.service-item:hover::after {
+    background: linear-gradient(to right,
+        rgba(197, 160, 89, 0.9) 0%,
+        rgba(197, 160, 89, 0.4) 50%,
+        rgba(197, 160, 89, 0)   100%);
+}
+
+.service-item:last-child::after {
+    display: none;
+}
+
+/* =============================================================
+   Karusel služeb (mobil)
+   ============================================================= */
+.services-track {
+    display: grid;
+    grid-template-columns: repeat(3, 85%);
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 1.5rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.services-track > * {
+    scroll-snap-align: center;
+}
+
+.services-track::-webkit-scrollbar {
+    height: 4px;
+}
+
+@media (min-width: 768px) {
+    .services-track {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2.5rem;
+        overflow: visible;
+        padding-bottom: 0;
+    }
+}
