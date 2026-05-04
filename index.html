@@ -398,6 +398,50 @@
             animation: scrollHint 2s ease-in-out infinite;
         }
 
+        /* Tlačítko „nahoru" v pravém dolním rohu */
+        .back-to-top {
+            position: fixed;
+            right: 1.25rem;
+            bottom: 1.25rem;
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 9999px;
+            background: rgba(20, 20, 20, 0.85);
+            color: #c5a059;
+            border: 1px solid rgba(197, 160, 89, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(8px);
+            transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+            z-index: 45;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .back-to-top:hover {
+            background: rgba(197, 160, 89, 0.15);
+            border-color: rgba(197, 160, 89, 0.7);
+            color: #ebd197;
+        }
+        @media (min-width: 640px) {
+            .back-to-top {
+                right: 2rem;
+                bottom: 2rem;
+                width: 3rem;
+                height: 3rem;
+                font-size: 1rem;
+            }
+        }
+
         /* Plovoucí ikona u kontaktních dlaždic */
         .float-icon {
             animation: float 3s ease-in-out infinite;
@@ -1096,6 +1140,11 @@
         </div>
     </footer>
 
+    <!-- Tlačítko: posunout nahoru -->
+    <button id="back-to-top" aria-label="Posunout nahoru" class="back-to-top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
     <!-- JavaScript pro interakce -->
     <script>
         // Aktuální rok v patičce
@@ -1190,7 +1239,8 @@
             }
         });
 
-        // Navbar ztmavení a smrštění při scrollu
+        // Navbar ztmavení / smrštění + tlačítko nahoru
+        const backToTopBtn = document.getElementById('back-to-top');
         window.addEventListener('scroll', () => {
             const nav = document.getElementById('navbar');
             if (window.scrollY > 50) {
@@ -1200,7 +1250,16 @@
                 nav.classList.remove('scrolled', 'bg-dark/95', 'shadow-lg');
                 nav.classList.add('bg-dark/90');
             }
+            if (backToTopBtn) {
+                backToTopBtn.classList.toggle('visible', window.scrollY > 400);
+            }
         }, { passive: true });
+
+        if (backToTopBtn) {
+            backToTopBtn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
 
         // Vlastní logika pro formulář a nahrazení alert() vyskakovacím oknem (modalem)
         const modal = document.getElementById('messageModal');
