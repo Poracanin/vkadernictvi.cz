@@ -779,7 +779,7 @@
                     <div class="grid grid-cols-1 gap-3 sm:gap-4 max-w-md mx-auto lg:max-w-none">
                         <!-- Hlavní fotka -->
                         <div class="relative overflow-hidden border border-gold/30 shadow-2xl group">
-                            <img src="photos/2.webp" alt="Detail kadeřnické práce" class="w-full h-full object-cover aspect-[4/3] transition-transform duration-700 group-hover:scale-105">
+                            <img src="photos/2.webp" alt="Detail kadeřnické práce" class="w-full h-full object-cover object-top aspect-[4/3] transition-transform duration-700 group-hover:scale-105">
                             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 pt-12">
                                 <p class="text-gold text-xs uppercase tracking-widest font-semibold">Veronika Volfová</p>
                                 <p class="text-white text-sm font-light">Kadeřnice</p>
@@ -788,7 +788,7 @@
 
                         <!-- Vedlejší fotka - černobílá -->
                         <div class="relative overflow-hidden border border-gray-800 group">
-                            <img src="photos/3.webp" alt="Atmosféra kadeřnictví" class="w-full h-full object-cover aspect-[3/2] grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105">
+                            <img src="photos/3.webp" alt="Atmosféra kadeřnictví" class="w-full h-full object-cover [object-position:50%_30%] aspect-[3/2] grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105">
                         </div>
                     </div>
                 </div>
@@ -1091,7 +1091,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-8 pt-8 border-t border-gray-800">
+                    <div class="mt-8 pt-8 border-t border-gray-800 flex justify-center">
                         <a href="#rezervace" class="btn-shimmer inline-flex items-center bg-gold-gradient text-black font-semibold uppercase tracking-wider text-sm px-8 py-4 transition-all duration-300">
                             <i class="fas fa-calendar-alt mr-2"></i> Rezervovat termín
                         </a>
@@ -1503,13 +1503,15 @@
             grid.innerHTML = data.categories.map(cat => {
                 const catServices = data.services.filter(s => s.category === cat.id);
                 const items = catServices.map(s => `
-                    <div class="py-4 flex items-start justify-between gap-4">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-white font-medium leading-snug">${escapeHtml(s.name)}</p>
-                            ${s.duration ? `<p class="text-xs text-gray-500 mt-1">${escapeHtml(s.duration)}</p>` : ''}
-                            ${s.description ? `<p class="text-xs text-gray-500 mt-1.5 leading-relaxed font-light">${escapeHtml(s.description)}</p>` : ''}
+                    <div class="py-4">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-white font-semibold leading-snug">${escapeHtml(s.name)}</p>
+                                ${s.duration ? `<p class="text-xs text-gray-400 mt-1 font-medium tracking-wide">${escapeHtml(s.duration)}</p>` : ''}
+                            </div>
+                            <p class="text-gold font-semibold whitespace-nowrap text-sm">${formatPrice(s.price)}</p>
                         </div>
-                        <p class="text-gold font-semibold whitespace-nowrap text-sm">${formatPrice(s.price)}</p>
+                        ${s.description ? `<p class="text-xs text-gray-500 mt-2 leading-relaxed font-light">${escapeHtml(s.description)}</p>` : ''}
                     </div>
                 `).join('');
 
@@ -1522,7 +1524,7 @@
                             <i class="fas ${escapeHtml(cat.icon)} text-sm mr-2"></i>
                             <h3 class="font-serif text-base font-bold uppercase tracking-widest">${escapeHtml(cat.label)}</h3>
                         </div>
-                        ${cat.description ? `<p class="px-6 pt-5 text-xs text-gray-400 font-light leading-relaxed">${escapeHtml(cat.description)}</p>` : ''}
+                        ${cat.description ? `<p class="px-6 pt-5 text-xs text-gray-400 font-light leading-relaxed text-center">${escapeHtml(cat.description)}</p>` : ''}
                         <div class="px-6 py-2 divide-y divide-gold/10 flex-1">
                             ${items || '<p class="py-6 text-center text-sm text-gray-500">Zatím žádné služby</p>'}
                         </div>
