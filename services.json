@@ -1,0 +1,201 @@
+{
+  "categories": [
+    {
+      "id": "damske",
+      "label": "Dámské",
+      "icon": "fa-venus",
+      "description": "Nabízím dámské střihy, barvení, přelivy, melíry i speciální péči o vlasy. Každé vlasy jsou jiné, proto se vždy domluvíme podle jejich aktuálního stavu, délky a toho, jaký výsledek si přejete.",
+      "subcategories": [
+        { "id": "poprve", "label": "Jsem u vás poprvé" },
+        { "id": "pravidelne", "label": "Chodím pravidelně" }
+      ]
+    },
+    {
+      "id": "panske",
+      "label": "Pánské",
+      "icon": "fa-mars",
+      "description": "Pánské střihy jsou rychlé, praktické a upravené podle přání zákazníka. Můžete přijít na klasický střih, kombinaci s úpravou vousů nebo komplexní péči."
+    },
+    {
+      "id": "detske",
+      "label": "Dětské",
+      "icon": "fa-child",
+      "description": "Dětský střih probíhá v klidu a bez zbytečného spěchu. Cílem je, aby se dítě cítilo příjemně a odcházelo spokojené."
+    }
+  ],
+  "services": [
+    {
+      "id": 101,
+      "icon": "fa-spray-can",
+      "category": "damske",
+      "subcategory": "poprve",
+      "name": "Vstupní návštěva — čištění vlasů",
+      "duration": "120 min",
+      "durationMin": 120,
+      "price": 2150,
+      "description": "Před barvením nebo zesvětlením je u nás podmínkou první návštěva, která se skládá z čištění vlasů."
+    },
+    {
+      "id": 102,
+      "icon": "fa-cut",
+      "category": "damske",
+      "subcategory": "poprve",
+      "name": "Vstupní návštěva — čištění vlasů + střih",
+      "duration": "120 min",
+      "durationMin": 120,
+      "price": 2650,
+      "description": ""
+    },
+    {
+      "id": 103,
+      "icon": "fa-cut",
+      "category": "damske",
+      "subcategory": "poprve",
+      "name": "Dámský střih",
+      "duration": "60 min",
+      "durationMin": 60,
+      "price": 1550,
+      "description": ""
+    },
+    {
+      "id": 104,
+      "icon": "fa-wind",
+      "category": "damske",
+      "subcategory": "poprve",
+      "name": "Foukaná",
+      "duration": "60 min",
+      "durationMin": 60,
+      "price": 950,
+      "description": ""
+    },
+
+    {
+      "id": 201,
+      "icon": "fa-palette",
+      "category": "damske",
+      "subcategory": "pravidelne",
+      "name": "Barvení odrostu BARVOU",
+      "duration": "120 min",
+      "durationMin": 120,
+      "price": 2150,
+      "description": "Barvení odrostu BARVOU, nejedná se o zesvětlení — doplnění melíru apod. To naleznete dole."
+    },
+    {
+      "id": 202,
+      "icon": "fa-palette",
+      "category": "damske",
+      "subcategory": "pravidelne",
+      "name": "Barvení odrostu + střih",
+      "duration": "120 min",
+      "durationMin": 120,
+      "price": 2650,
+      "description": ""
+    },
+    {
+      "id": 203,
+      "icon": "fa-tint",
+      "category": "damske",
+      "subcategory": "pravidelne",
+      "name": "Barva / přeliv celé délky",
+      "duration": "120 min",
+      "durationMin": 120,
+      "price": 2650,
+      "description": "V případě velké hustoty je účtován příplatek za každou použitou tubu barvy navíc."
+    },
+    {
+      "id": 204,
+      "icon": "fa-tint",
+      "category": "damske",
+      "subcategory": "pravidelne",
+      "name": "Barva / přeliv celé délky + střih",
+      "duration": "120 min",
+      "durationMin": 120,
+      "price": 3250,
+      "description": "V případě velké hustoty je účtován příplatek za každou použitou tubu barvy navíc."
+    },
+    {
+      "id": 205,
+      "icon": "fa-wind",
+      "category": "damske",
+      "subcategory": "pravidelne",
+      "name": "Foukaná",
+      "duration": "60 min",
+      "durationMin": 60,
+      "price": 950,
+      "description": ""
+    },
+    {
+      "id": 206,
+      "icon": "fa-magic",
+      "category": "damske",
+      "subcategory": "pravidelne",
+      "name": "Zesvětlení (foilayage, balayage, melír)",
+      "duration": "300 min",
+      "durationMin": 300,
+      "price": null,
+      "description": "Neobjednávat se! Rezervace bude zrušena. Na službu je možné se objednat po předchozí domluvě."
+    },
+
+    {
+      "id": 301,
+      "icon": "fa-cut",
+      "category": "panske",
+      "name": "Pánský střih",
+      "duration": "30–40 min",
+      "durationMin": 40,
+      "price": 650,
+      "description": ""
+    },
+    {
+      "id": 302,
+      "icon": "fa-user-tie",
+      "category": "panske",
+      "name": "Stříhání + vousy",
+      "duration": "50–60 min",
+      "durationMin": 60,
+      "price": 950,
+      "description": ""
+    },
+    {
+      "id": 303,
+      "icon": "fa-palette",
+      "category": "panske",
+      "name": "Střih + barvení vousů",
+      "duration": "120 min",
+      "durationMin": 120,
+      "price": 1200,
+      "description": ""
+    },
+    {
+      "id": 304,
+      "icon": "fa-spa",
+      "category": "panske",
+      "name": "Střih + úprava vousů + péče o pleť + masáž obličeje a hlavy",
+      "duration": "90 min",
+      "durationMin": 90,
+      "price": 1600,
+      "description": ""
+    },
+    {
+      "id": 305,
+      "icon": "fa-user-tie",
+      "category": "panske",
+      "name": "Vousy",
+      "duration": "30 min",
+      "durationMin": 30,
+      "price": 550,
+      "description": ""
+    },
+
+    {
+      "id": 401,
+      "icon": "fa-child",
+      "category": "detske",
+      "name": "Dětský střih",
+      "duration": "30 min",
+      "durationMin": 30,
+      "price": 250,
+      "description": ""
+    }
+  ]
+}

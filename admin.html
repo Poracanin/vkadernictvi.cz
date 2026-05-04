@@ -203,11 +203,19 @@
         .navigation ul li:nth-child(4).active ~ .indicator { transform: translateX(calc(70px * 3)); }
         .navigation ul li:nth-child(5).active ~ .indicator { transform: translateX(calc(70px * 4)); }
 
-        /* Kustomizace scrollbaru */
-        ::-webkit-scrollbar { width: 6px; }
+        /* Zlatý scrollbar */
+        html { scrollbar-color: #c5a059 #0a0a0a; scrollbar-width: thin; }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #c5a059; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+            border-radius: 4px;
+            border: 2px solid #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #fdf1cd 0%, #d4af37 50%, #a68541 100%);
+        }
+        ::-webkit-scrollbar-corner { background: #0a0a0a; }
 
         /* Přepínání sekcí s lehkou animací */
         .tab-content {
@@ -816,23 +824,38 @@
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Kategorie</label>
                         <select id="serviceModalCategory" class="p-3 text-sm rounded w-full">
-                            <option>Dámské</option>
-                            <option>Pánské</option>
-                            <option>Dětské</option>
+                            <option value="damske">Dámské</option>
+                            <option value="panske">Pánské</option>
+                            <option value="detske">Dětské</option>
                         </select>
                     </div>
+                    <div id="serviceModalSubcategoryWrapper">
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Podkategorie</label>
+                        <select id="serviceModalSubcategory" class="p-3 text-sm rounded w-full">
+                            <option value="">— žádná —</option>
+                            <option value="poprve">Jsem u vás poprvé</option>
+                            <option value="pravidelne">Chodím pravidelně</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Délka</label>
                         <input type="text" id="serviceModalDuration" class="p-3 text-sm rounded w-full" placeholder="Např. 60 min">
                     </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Cena</label>
+                        <div class="relative">
+                            <input type="number" id="serviceModalPrice" class="p-3 pl-3 pr-12 text-sm w-full rounded" placeholder="Cena (prázdné = na dotaz)">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Cena</label>
-                    <div class="relative">
-                        <input type="number" id="serviceModalPrice" class="p-3 pl-3 pr-12 text-sm w-full rounded" placeholder="Cena">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
-                    </div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Popis <span class="text-gray-600 normal-case tracking-normal">(nepovinné)</span></label>
+                    <textarea id="serviceModalDescription" rows="3" class="p-3 text-sm rounded w-full" placeholder="Krátký popis služby..."></textarea>
                 </div>
 
                 <div>
@@ -1003,47 +1026,75 @@
             }
         });
 
-        // === SLUŽBY - data-driven s localStorage cache ===
-        const STORAGE_KEY = 'vkadernictvi_services_v1';
-        const DEFAULT_SERVICES = [
-            { id: 1,  icon: 'fa-cut',         name: 'Dámský střih – dlouhé vlasy', category: 'Dámské',  duration: '60 min', price: 500  },
-            { id: 2,  icon: 'fa-palette',     name: 'Barvení vlasů',               category: 'Dámské',  duration: '90 min', price: 900  },
-            { id: 3,  icon: 'fa-tint',        name: 'Přeliv',                      category: 'Dámské',  duration: '90 min', price: 800  },
-            { id: 4,  icon: 'fa-magic',       name: 'Melír',                       category: 'Dámské',  duration: '3,5 hod', price: 1500 },
-            { id: 5,  icon: 'fa-layer-group', name: 'Barvení + sundání pásek',     category: 'Dámské',  duration: '3 hod',  price: 1400 },
-            { id: 6,  icon: 'fa-leaf',        name: 'Malibu C péče',               category: 'Dámské',  duration: '3 hod',  price: 1200 },
-            { id: 7,  icon: 'fa-cut',         name: 'Klasický pánský střih',       category: 'Pánské',  duration: '30 min', price: 300  },
-            { id: 8,  icon: 'fa-user-tie',    name: 'Klasický střih + úprava vousů', category: 'Pánské', duration: '60 min', price: 500  },
-            { id: 9,  icon: 'fa-bolt',        name: 'Střih strojkem',              category: 'Pánské',  duration: '30 min', price: 250  },
-            { id: 10, icon: 'fa-child',       name: 'Dětský střih',                category: 'Dětské',  duration: '30 min', price: 250  }
+        // === SLUŽBY - data-driven, načítané ze services.json + cache v localStorage ===
+        const STORAGE_KEY = 'vkadernice_services_v1';
+        const SERVICES_JSON_URL = 'services.json';
+
+        // Statická konfigurace kategorií (musí odpovídat services.json)
+        const CATEGORIES = [
+            { id: 'damske', label: 'Dámské', icon: 'fa-venus',
+              subcategories: [
+                  { id: 'poprve', label: 'Jsem u vás poprvé' },
+                  { id: 'pravidelne', label: 'Chodím pravidelně' }
+              ]
+            },
+            { id: 'panske', label: 'Pánské', icon: 'fa-mars' },
+            { id: 'detske', label: 'Dětské', icon: 'fa-child' }
         ];
+        const CATEGORY_LABEL = Object.fromEntries(CATEGORIES.map(c => [c.id, c.label]));
+        const CATEGORY_ORDER = Object.fromEntries(CATEGORIES.map((c, i) => [c.id, i]));
+        const SUBCATEGORY_LABEL = { poprve: 'Jsem u vás poprvé', pravidelne: 'Chodím pravidelně' };
+        const BADGE_COLORS = {
+            damske: 'bg-pink-900/20 text-pink-300',
+            panske: 'bg-blue-900/20 text-blue-300',
+            detske: 'bg-purple-900/20 text-purple-300'
+        };
 
-        let services = loadServices();
+        let services = [];
+        let baseCategories = CATEGORIES;
 
-        function loadServices() {
+        async function loadServices() {
+            // 1) localStorage má prioritu (je to úprava admina)
             try {
                 const cached = localStorage.getItem(STORAGE_KEY);
-                if (cached) return JSON.parse(cached);
-            } catch (e) { console.warn('Nelze načíst cache:', e); }
-            return JSON.parse(JSON.stringify(DEFAULT_SERVICES));
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && Array.isArray(parsed.services)) {
+                        services = parsed.services;
+                        if (Array.isArray(parsed.categories) && parsed.categories.length) {
+                            baseCategories = parsed.categories;
+                        }
+                        return;
+                    }
+                }
+            } catch (e) { console.warn('Cache load failed:', e); }
+
+            // 2) Fallback - services.json
+            try {
+                const res = await fetch(SERVICES_JSON_URL, { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    services = Array.isArray(data.services) ? data.services : [];
+                    if (Array.isArray(data.categories) && data.categories.length) {
+                        baseCategories = data.categories;
+                    }
+                    return;
+                }
+            } catch (e) { console.warn('JSON load failed:', e); }
+
+            services = [];
         }
 
         function persistServices() {
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(services));
+                const payload = { categories: baseCategories, services };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
             } catch (e) { console.warn('Nelze uložit cache:', e); }
         }
 
         function nextServiceId() {
             return services.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
         }
-
-        const CATEGORY_ORDER = { 'Dámské': 0, 'Pánské': 1, 'Dětské': 2 };
-        const BADGE_COLORS = {
-            'Dámské': 'bg-pink-900/20 text-pink-300',
-            'Pánské': 'bg-blue-900/20 text-blue-300',
-            'Dětské': 'bg-purple-900/20 text-purple-300'
-        };
 
         function renderServices() {
             const tbody = document.getElementById('services-tbody');
@@ -1065,19 +1116,44 @@
                 return;
             }
 
-            tbody.innerHTML = sorted.map(s => `
+            tbody.innerHTML = sorted.map(s => {
+                const catLabel = CATEGORY_LABEL[s.category] || s.category;
+                const subLabel = s.subcategory ? SUBCATEGORY_LABEL[s.subcategory] || s.subcategory : '';
+                const priceTxt = (s.price === null || s.price === undefined || s.price === '') ? 'na dotaz' : Number(s.price).toLocaleString('cs-CZ') + ' Kč';
+                return `
                 <tr class="hover:bg-white/5 transition-colors group" data-id="${s.id}">
                     <td class="p-4 text-sm text-white"><i class="fas ${s.icon} text-gold/60 mr-2 text-xs"></i>${escapeHtml(s.name)}</td>
-                    <td class="p-4 text-xs"><span class="${BADGE_COLORS[s.category] || 'bg-gray-700 text-gray-200'} px-2 py-1 rounded text-[10px] uppercase tracking-wider">${s.category}</span></td>
+                    <td class="p-4 text-xs">
+                        <span class="${BADGE_COLORS[s.category] || 'bg-gray-700 text-gray-200'} px-2 py-1 rounded text-[10px] uppercase tracking-wider">${escapeHtml(catLabel)}</span>
+                        ${subLabel ? `<span class="block text-[10px] text-gray-500 mt-1">${escapeHtml(subLabel)}</span>` : ''}
+                    </td>
                     <td class="p-4 text-xs text-gray-400 hidden md:table-cell">${escapeHtml(s.duration || '-')}</td>
-                    <td class="p-4 text-sm text-gold text-right whitespace-nowrap font-semibold">${Number(s.price).toLocaleString('cs-CZ')} Kč</td>
+                    <td class="p-4 text-sm text-gold text-right whitespace-nowrap font-semibold">${priceTxt}</td>
                     <td class="p-4 text-right whitespace-nowrap">
                         <button onclick="openServiceModal(${s.id})" class="text-gray-500 hover:text-gold transition-colors p-2" title="Upravit"><i class="fas fa-edit"></i></button>
                         <button onclick="deleteService(${s.id})" class="text-gray-500 hover:text-red-500 transition-colors p-2" title="Smazat"><i class="fas fa-trash"></i></button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
+
+        function refreshSubcategoryVisibility() {
+            const cat = document.getElementById('serviceModalCategory').value;
+            const wrapper = document.getElementById('serviceModalSubcategoryWrapper');
+            const select = document.getElementById('serviceModalSubcategory');
+            const catCfg = CATEGORIES.find(c => c.id === cat);
+            if (catCfg && Array.isArray(catCfg.subcategories) && catCfg.subcategories.length) {
+                wrapper.style.display = '';
+            } else {
+                wrapper.style.display = 'none';
+                select.value = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const catSelect = document.getElementById('serviceModalCategory');
+            if (catSelect) catSelect.addEventListener('change', refreshSubcategoryVisibility);
+        });
 
         function escapeHtml(str) {
             return String(str ?? '').replace(/[&<>"']/g, m => ({
@@ -1133,10 +1209,13 @@
             editingId = id;
             serviceModalTitle.textContent = 'Upravit službu';
             document.getElementById('serviceModalName').value = svc.name || '';
-            document.getElementById('serviceModalCategory').value = svc.category || 'Dámské';
+            document.getElementById('serviceModalCategory').value = svc.category || 'damske';
+            document.getElementById('serviceModalSubcategory').value = svc.subcategory || '';
             document.getElementById('serviceModalDuration').value = svc.duration || '';
-            document.getElementById('serviceModalPrice').value = svc.price ?? '';
+            document.getElementById('serviceModalPrice').value = (svc.price === null || svc.price === undefined) ? '' : svc.price;
+            document.getElementById('serviceModalDescription').value = svc.description || '';
             setIconInPicker(svc.icon);
+            refreshSubcategoryVisibility();
             showServiceModal();
         }
 
@@ -1144,10 +1223,13 @@
             editingId = null;
             serviceModalTitle.textContent = 'Přidat službu';
             document.getElementById('serviceModalName').value = '';
-            document.getElementById('serviceModalCategory').value = 'Dámské';
+            document.getElementById('serviceModalCategory').value = 'damske';
+            document.getElementById('serviceModalSubcategory').value = '';
             document.getElementById('serviceModalDuration').value = '';
             document.getElementById('serviceModalPrice').value = '';
+            document.getElementById('serviceModalDescription').value = '';
             setIconInPicker('fa-cut');
+            refreshSubcategoryVisibility();
             showServiceModal();
         }
 
@@ -1165,26 +1247,33 @@
             event.preventDefault();
             const name = document.getElementById('serviceModalName').value.trim();
             const category = document.getElementById('serviceModalCategory').value;
+            const subcategory = document.getElementById('serviceModalSubcategory').value || null;
             const duration = document.getElementById('serviceModalDuration').value.trim();
+            const description = document.getElementById('serviceModalDescription').value.trim();
             const priceRaw = document.getElementById('serviceModalPrice').value;
-            const price = priceRaw === '' ? 0 : Number(priceRaw);
+            const price = priceRaw === '' ? null : Number(priceRaw);
 
             if (!name) return;
+
+            const catCfg = CATEGORIES.find(c => c.id === category);
+            const finalSub = (catCfg && catCfg.subcategories) ? subcategory : null;
 
             if (editingId !== null) {
                 const svc = services.find(s => s.id === editingId);
                 if (svc) {
                     svc.name = name;
                     svc.category = category;
+                    svc.subcategory = finalSub;
                     svc.duration = duration;
                     svc.price = price;
+                    svc.description = description;
                     svc.icon = selectedIcon;
                 }
             } else {
                 services.push({
                     id: nextServiceId(),
                     icon: selectedIcon,
-                    name, category, duration, price
+                    name, category, subcategory: finalSub, duration, price, description
                 });
             }
 
@@ -1211,7 +1300,10 @@
             }
         });
 
-        renderServices();
+        (async () => {
+            await loadServices();
+            renderServices();
+        })();
 
         // === KALENDÁŘ ===
         const monthNames = ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
@@ -1341,7 +1433,7 @@
         renderCalendar();
 
         // === OTEVÍRACÍ DOBA - data-driven s pauzou + cache ===
-        const HOURS_KEY = 'vkadernictvi_hours_v1';
+        const HOURS_KEY = 'vkadernice_hours_v1';
         const DEFAULT_HOURS = [
             { id: 'pondeli', name: 'Pondělí', open: true,  from: '09:00', to: '17:00', breakEnabled: false, breakFrom: '12:00', breakTo: '13:00' },
             { id: 'utery',   name: 'Úterý',   open: true,  from: '09:00', to: '17:00', breakEnabled: false, breakFrom: '12:00', breakTo: '13:00' },
