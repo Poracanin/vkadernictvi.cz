@@ -1,0 +1,27 @@
+# --- Tajné konfigurace ---
+includes/config.php
+
+# --- Logy ---
+logs/
+*.log
+
+# --- OS / IDE ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- PHP ---
+vendor/
+composer.lock
+
+# --- Uploady (pokud někdy přibudou) ---
+public_html/uploads/
+
+# --- Dočasné ---
+*.bak
+*.tmp
+*.cache

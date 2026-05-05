@@ -1,0 +1,119 @@
+# =====================================================================
+#  /public_html/.htaccess
+#  Document root pro vkadernictvi.cz
+# =====================================================================
+
+# ---------- 1. Vynucení HTTPS (kromě localhost) -----------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Pokud běží přes proxy/CDN, respektuj X-Forwarded-Proto
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1 [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+    # Sjednocení na www. (volitelné – odkomentuj pokud chceš canonical www)
+    # RewriteCond %{HTTP_HOST} !^www\. [NC]
+    # RewriteCond %{HTTP_HOST} !^localhost [NC]
+    # RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# ---------- 2. Bezpečnostní hlavičky ---------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+    # Odstranění hlaviček, které mohou prozrazovat verzi
+    Header unset X-Powered-By
+    Header unset Server
+</IfModule>
+
+# Vypnutí ETag (zvyšuje konzistenci cache mezi instancemi)
+<IfModule mod_headers.c>
+    Header unset ETag
+</IfModule>
+FileETag None
+
+# ---------- 3. Skrytí citlivých souborů -------------------------------
+# Zakázat přístup k jakýmkoliv dotfile (např. .git, .env, .htaccess)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Konkrétní citlivé přípony
+<FilesMatch "\.(sql|log|md|example|ini|conf|sh|bak|tmp|swp|orig)$">
+    Require all denied
+</FilesMatch>
+
+# Zakázat čtení README, install souborů z webu
+<FilesMatch "(?i)^(readme|changelog|install|composer|package)\.(md|txt|json|lock)$">
+    Require all denied
+</FilesMatch>
+
+# ---------- 4. Default dokumenty -------------------------------------
+DirectoryIndex index.html index.php
+
+# Vypnutí výpisu adresářů (pro jistotu)
+Options -Indexes -MultiViews
+
+# ---------- 5. Charset & MIME ----------------------------------------
+AddDefaultCharset UTF-8
+
+<IfModule mod_mime.c>
+    AddType text/html                  .html
+    AddType application/javascript     .js
+    AddType text/css                   .css
+    AddType image/webp                 .webp
+    AddType image/svg+xml              .svg
+    AddType image/x-icon               .ico
+    AddType application/json           .json
+    AddType application/font-woff2     .woff2
+</IfModule>
+
+# ---------- 6. Komprese ----------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+    AddOutputFilterByType DEFLATE application/javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml application/xml
+</IfModule>
+
+# ---------- 7. Cache statiky -----------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault                                  "access plus 1 hour"
+
+    # HTML – nikdy necachovat (admin stránky atd.)
+    ExpiresByType text/html                         "access plus 0 seconds"
+
+    # Statika
+    ExpiresByType text/css                          "access plus 7 days"
+    ExpiresByType application/javascript            "access plus 7 days"
+    ExpiresByType image/jpeg                        "access plus 30 days"
+    ExpiresByType image/png                         "access plus 30 days"
+    ExpiresByType image/webp                        "access plus 30 days"
+    ExpiresByType image/svg+xml                     "access plus 30 days"
+    ExpiresByType image/x-icon                      "access plus 30 days"
+    ExpiresByType font/woff2                        "access plus 1 year"
+    ExpiresByType application/font-woff2            "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # JSON API odpovědi nikdy necachovat
+    <FilesMatch "\.(json)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </FilesMatch>
+    # PHP odpovědi (API) nikdy necachovat
+    <FilesMatch "\.(php)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+    </FilesMatch>
+</IfModule>
+
+# ---------- 8. Custom error pages (volitelné) ------------------------
+ErrorDocument 403 /index.html
+ErrorDocument 404 /index.html

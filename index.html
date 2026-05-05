@@ -385,6 +385,10 @@
 
             <form id="bookingForm" class="bg-dark-light p-6 sm:p-8 md:p-12 border border-gray-800 shadow-2xl" onsubmit="handleFormSubmit(event)">
 
+                <!-- Honeypot – skrytý input proti botům (lidé ho nikdy nevyplní) -->
+                <input type="text" name="website" id="website" tabindex="-1" autocomplete="off" aria-hidden="true"
+                       style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;height:0;width:0;">
+
                 <!-- 1) Osobní údaje (přes celou šířku) -->
                 <div>
                     <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase mb-1.5">Krok 1 — Vaše údaje</p>
@@ -514,6 +518,21 @@
                     </p>
                 </div>
             </form>
+
+            <!-- Stav po úspěšné rezervaci (skrytý dokud nepřijde 200 z book.php) -->
+            <div id="booking-success" class="hidden bg-dark-light p-6 sm:p-8 md:p-12 border border-gold/40 shadow-2xl text-center">
+                <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-gold-gradient flex items-center justify-center">
+                    <i class="fas fa-check text-black text-2xl"></i>
+                </div>
+                <h3 class="font-serif text-3xl text-white mb-3">Děkujeme!</h3>
+                <p class="text-gray-400 font-light text-sm max-w-xl mx-auto mb-8" data-success-message>
+                    Vaše rezervace byla úspěšně přijata a brzy vás budu kontaktovat pro potvrzení termínu.
+                </p>
+                <button type="button" onclick="window.__bookingResetToForm && window.__bookingResetToForm()"
+                        class="bg-transparent border border-gold text-gold hover:bg-gold hover:text-black uppercase tracking-wider text-xs font-semibold px-8 py-3 transition-all duration-300">
+                    <i class="fas fa-plus mr-2"></i>Nová rezervace
+                </button>
+            </div>
         </div>
     </section>
 
@@ -633,6 +652,10 @@
     <button id="back-to-top" aria-label="Posunout nahoru" class="back-to-top">
         <i class="fas fa-chevron-up"></i>
     </button>
+
+    <!-- Napojení na PHP backend (musí běžet PŘED defer main.js, aby
+         stačil monkey-patchnout fetch services.json → /api/public/services.php) -->
+    <script src="assets/js/booking-api.js"></script>
 
 </body>
 </html>

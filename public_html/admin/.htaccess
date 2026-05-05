@@ -1,0 +1,28 @@
+# =====================================================================
+# /admin/.htaccess
+#
+# Bezpečnostní pravidla pro administraci:
+#   1) Zakaž přímý přístup k admin.html – musí jít přes index.php (guard)
+#   2) Drobné HTTP security headery
+# =====================================================================
+
+# Zákaz přímého stažení admin.html (404 / 403)
+<FilesMatch "^admin\.html$">
+    Require all denied
+</FilesMatch>
+
+# Pokud je dostupný mod_rewrite, přesměruj /admin/admin.html → /admin/
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^admin\.html$ /admin/ [L,R=301]
+</IfModule>
+
+# Bezpečnostní hlavičky
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Default file
+DirectoryIndex index.php

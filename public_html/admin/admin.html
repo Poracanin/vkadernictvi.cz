@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSRF + admin-user placeholdery; admin/index.php je při loadu přepíše skutečnými hodnotami -->
+    <meta name="csrf-token" content="">
+    <meta name="admin-user" content="">
+    <title>Administrace | Vkadeřnictví</title>
+
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            DEFAULT: '#0a0a0a',
+                            light: '#141414',
+                            lighter: '#1f1f1f'
+                        },
+                        gold: {
+                            light: '#ebd197',
+                            DEFAULT: '#c5a059',
+                            dark: '#9c7b3b'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['Montserrat', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'gold-gradient': 'linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%)',
+                        'dark-gradient': 'linear-gradient(180deg, rgba(10,10,10,0.8) 0%, rgba(10,10,10,1) 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #d1d5db;
+            padding-bottom: 90px; /* Space for the bottom navigation */
+            overflow-x: hidden;
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(to bottom, #ebd197 0%, #c5a059 60%, #9c7b3b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .bg-gold-gradient {
+            background: linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+        }
+
+        /* Vstupy pro formuláře */
+        input[type="text"], input[type="number"], input[type="time"], select {
+            background-color: #141414;
+            border: 1px solid #333;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #c5a059;
+            box-shadow: 0 0 5px rgba(197, 160, 89, 0.3);
+        }
+
+        /* --- MAGIC NAVIGATION MENU CSS --- */
+        .navigation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: #141414;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.6);
+            z-index: 50;
+        }
+
+        .navigation ul {
+            display: flex;
+            width: 350px; /* 5 items * 70px */
+            position: relative;
+            padding: 0;
+            margin: 0;
+        }
+
+        .navigation ul li {
+            position: relative;
+            list-style: none;
+            width: 70px;
+            height: 70px;
+            z-index: 1;
+        }
+
+        .navigation ul li a {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 100%;
+            text-align: center;
+            font-weight: 500;
+            height: 100%;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .navigation ul li a .icon {
+            position: relative;
+            display: block;
+            line-height: 70px; /* Zarovnání na výšku li pro precizní středění */
+            font-size: 1.75em; /* Lehce větší ikony */
+            text-align: center;
+            transition: 0.5s;
+            color: #c5a059;
+            z-index: 10; /* Aby ikona nebyla překryta barevným pozadím kruhu */
+        }
+
+        .navigation ul li.active a .icon {
+            transform: translateY(-35px); /* Matematicky přesně vycentrováno do kruhu (-50% z 70px) */
+            color: #0a0a0a;
+        }
+
+        .navigation ul li a .text {
+            position: absolute;
+            color: #c5a059;
+            font-weight: 500;
+            font-size: 0.6em;
+            letter-spacing: 0.05em;
+            transition: 0.5s;
+            opacity: 0;
+            transform: translateY(20px);
+            text-transform: uppercase;
+        }
+
+        .navigation ul li.active a .text {
+            opacity: 1;
+            transform: translateY(12px);
+        }
+
+        /* Kolečko s gradientem, které cestuje */
+        .indicator {
+            position: absolute;
+            top: -50%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+            border-radius: 50%;
+            border: 6px solid #0a0a0a; /* Ohraničení v barvě pozadí body vytváří iluzi výřezu */
+            transition: 0.5s;
+            z-index: 0;
+        }
+
+        /* Zaoblené okraje výřezu (Cutout effect) */
+        .indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -22px;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border-top-right-radius: 20px;
+            box-shadow: 1px -10px 0 0 #0a0a0a;
+        }
+
+        .indicator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -22px;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border-top-left-radius: 20px;
+            box-shadow: -1px -10px 0 0 #0a0a0a;
+        }
+
+        /* Pozice indikátoru podle aktivního Li (pro 5 položek) */
+        .navigation ul li:nth-child(1).active ~ .indicator { transform: translateX(calc(70px * 0)); }
+        .navigation ul li:nth-child(2).active ~ .indicator { transform: translateX(calc(70px * 1)); }
+        .navigation ul li:nth-child(3).active ~ .indicator { transform: translateX(calc(70px * 2)); }
+        .navigation ul li:nth-child(4).active ~ .indicator { transform: translateX(calc(70px * 3)); }
+        .navigation ul li:nth-child(5).active ~ .indicator { transform: translateX(calc(70px * 4)); }
+
+        /* Zlatý scrollbar */
+        html { scrollbar-color: #c5a059 #0a0a0a; scrollbar-width: thin; }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #ebd197 0%, #c5a059 50%, #9c7b3b 100%);
+            border-radius: 4px;
+            border: 2px solid #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #fdf1cd 0%, #d4af37 50%, #a68541 100%);
+        }
+        ::-webkit-scrollbar-corner { background: #0a0a0a; }
+
+        /* Přepínání sekcí s lehkou animací */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .tab-content.active-tab {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Otevírací doba - kompaktní time input */
+        .time-input { color-scheme: dark; font-variant-numeric: tabular-nums; }
+        .time-input::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; opacity: 0.5; transition: opacity 0.2s; padding: 0; margin-left: 2px; }
+        .time-input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+        @media (max-width: 640px) {
+            .time-input::-webkit-calendar-picker-indicator { display: none; }
+            .time-input { padding-right: 0.375rem !important; padding-left: 0.375rem !important; text-align: center; }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased text-gray-300">
+
+    <!-- Hlavička admin panelu -->
+    <header class="bg-dark-light border-b border-gray-800 p-3 md:p-4 sticky top-0 z-40 shadow-md">
+        <div class="max-w-5xl mx-auto flex justify-between items-center gap-3">
+            <div class="flex items-center gap-3 md:gap-4">
+                <img src="logo.png" alt="Vkadeřnictví" class="h-12 md:h-14 w-auto">
+                <div class="hidden sm:block border-l border-gray-700 pl-3 md:pl-4">
+                    <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase">Administrace</p>
+                    <p class="text-white text-sm md:text-base font-medium">Veronika Volfová</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 md:gap-4">
+                <span id="header-pending-badge" class="hidden md:flex items-center text-xs text-gray-400 bg-black/40 px-3 py-2 rounded border border-gray-800">
+                    <i class="far fa-bell text-gold mr-2"></i>
+                    <span class="text-white font-semibold mr-1" data-pending-count>0</span> nové
+                </span>
+                <button class="logout-btn group relative inline-flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-md border border-gray-800 bg-black/40 text-gray-300 hover:text-white hover:border-red-500/60 hover:bg-red-500/10 transition-all duration-300 text-xs md:text-sm uppercase tracking-wider font-semibold overflow-hidden">
+                    <span class="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/10 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    <i class="fas fa-sign-out-alt relative z-10 group-hover:translate-x-0.5 transition-transform duration-300"></i>
+                    <span class="hidden sm:inline relative z-10">Odhlásit</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hlavní obsah -->
+    <main class="max-w-5xl mx-auto p-4 md:p-6 mt-4">
+
+        <!-- SEKCE 1: REZERVACE (Žádosti) -->
+        <section id="rezervace" class="tab-content active-tab">
+            <div class="flex justify-between items-end mb-6 flex-wrap gap-3">
+                <div>
+                    <p class="text-gold tracking-[0.2em] text-xs font-semibold uppercase">Správa požadavků</p>
+                    <h2 class="font-serif text-3xl text-white">Rezervace</h2>
+                </div>
+                <div class="flex gap-2 text-xs">
+                    <span id="header-pill-new" class="bg-gold text-black font-bold px-3 py-1.5 rounded-full shadow-[0_0_10px_rgba(197,160,89,0.4)]">0 Nové</span>
+                    <span id="header-pill-ok"  class="bg-green-900/30 text-green-400 border border-green-900/50 font-bold px-3 py-1.5 rounded-full">0 Potvrzené</span>
+                </div>
+            </div>
+
+            <!-- Filtr záložky -->
+            <div class="flex gap-2 mb-6 border-b border-gray-800 overflow-x-auto">
+                <button data-bookings-filter="pending" class="px-4 py-3 text-sm uppercase tracking-wider text-gold border-b-2 border-gold whitespace-nowrap font-semibold transition-colors">
+                    <i class="far fa-clock mr-2"></i>Aktivní
+                </button>
+                <button data-bookings-filter="confirmed" class="px-4 py-3 text-sm uppercase tracking-wider text-gray-500 hover:text-gray-300 whitespace-nowrap border-b-2 border-transparent transition-colors">
+                    <i class="fas fa-check mr-2"></i>Potvrzené
+                </button>
+                <button data-bookings-filter="history" class="px-4 py-3 text-sm uppercase tracking-wider text-gray-500 hover:text-gray-300 whitespace-nowrap border-b-2 border-transparent transition-colors">
+                    <i class="fas fa-history mr-2"></i>Historie
+                </button>
+            </div>
+
+            <!-- ČEKAJÍCÍ NA POTVRZENÍ -->
+            <h3 id="bookings-pending-header" class="text-xs uppercase tracking-widest text-gray-500 mb-3 mt-2 flex items-center">
+                <i class="fas fa-hourglass-half text-gold mr-2"></i>Čekající na potvrzení
+                <span class="ml-2 bg-gold/20 text-gold text-[10px] px-1.5 py-0.5 rounded font-bold" data-count>0</span>
+            </h3>
+            <div id="bookings-pending-list" class="space-y-4 mb-10"></div>
+
+            <!-- POTVRZENÉ REZERVACE -->
+            <h3 id="bookings-confirmed-header" class="text-xs uppercase tracking-widest text-gray-500 mb-3 mt-8 flex items-center">
+                <i class="fas fa-check-circle text-green-500 mr-2"></i>Nadcházející potvrzené
+                <span class="ml-2 bg-green-900/30 text-green-400 text-[10px] px-1.5 py-0.5 rounded font-bold" data-count>0</span>
+            </h3>
+            <div id="bookings-confirmed-list" class="space-y-3"></div>
+        </section>
+
+
+        <!-- SEKCE 2: KALENDÁŘ A ROZVRH -->
+        <section id="kalendar" class="tab-content">
+            <div class="mb-6">
+                <p class="text-gold tracking-[0.2em] text-xs font-semibold uppercase">Plánování</p>
+                <h2 class="font-serif text-3xl text-white">Kalendář a Přehled</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- LEVÁ ČÁST: Vizualizace kalendáře -->
+                <div class="lg:col-span-2 bg-dark-light border border-gray-800 p-6 rounded-lg shadow-lg">
+                    <!-- Navigace měsíců -->
+                    <div class="flex justify-between items-center mb-6">
+                        <button id="calPrev" type="button" class="w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gold hover:text-black hover:border-gold transition-colors text-gray-400" title="Předchozí měsíc">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </button>
+                        <div class="flex items-center gap-3">
+                            <h3 id="calMonthLabel" class="text-xl font-medium text-white tracking-wide">Květen 2026</h3>
+                            <button id="calToday" type="button" class="text-[10px] uppercase tracking-widest text-gold border border-gold/40 hover:bg-gold hover:text-black transition-colors px-2 py-1 rounded" title="Skok na dnešní den">Dnes</button>
+                        </div>
+                        <button id="calNext" type="button" class="w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gold hover:text-black hover:border-gold transition-colors text-gray-400" title="Následující měsíc">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- Mřížka kalendáře -->
+                    <div class="grid grid-cols-7 gap-2 text-center mb-2">
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Po</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Út</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">St</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Čt</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Pá</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">So</div>
+                        <div class="text-xs text-red-500/70 font-semibold uppercase tracking-wider">Ne</div>
+                    </div>
+
+                    <div id="calGrid" class="grid grid-cols-7 gap-2 text-center text-sm">
+                        <!-- Dny generuje JS -->
+                    </div>
+
+                    <!-- Legenda -->
+                    <div class="flex items-center justify-center gap-5 text-[10px] uppercase tracking-widest text-gray-500 mt-5 pt-4 border-t border-gray-800 flex-wrap">
+                        <span class="flex items-center"><span class="w-2 h-2 bg-gold rounded-full mr-2"></span>Rezervace</span>
+                        <span class="flex items-center"><span class="w-2 h-2 bg-gold-gradient rounded-full mr-2"></span>Vybraný den</span>
+                        <span class="flex items-center text-red-400/70">Ne &nbsp;= Zavřeno</span>
+                    </div>
+                </div>
+
+                <!-- PRAVÁ ČÁST: Detailní seznam pro vybraný den -->
+                <div class="lg:col-span-1 bg-dark-light border border-gray-800 p-6 rounded-lg shadow-lg flex flex-col">
+                    <h3 class="text-lg font-serif text-white mb-2 flex justify-between items-center">
+                        <span>15. května (Pátek)</span>
+                        <span class="text-gold text-sm bg-gold/10 px-2 py-1 rounded">3 klienti</span>
+                    </h3>
+                    <p class="text-xs text-gray-500 mb-5 pb-3 border-b border-gray-800 flex items-center gap-2">
+                        <span class="bg-gold/20 text-gold px-2 py-0.5 rounded text-[10px] uppercase tracking-widest">2 200 Kč</span>
+                        <span>· obsazenost 75 %</span>
+                    </p>
+                    
+                    <div class="space-y-2 flex-1 overflow-y-auto pr-2">
+                        <!-- 09:00 -->
+                        <div class="flex items-start gap-4">
+                            <div class="text-gold font-bold mt-1 text-sm w-12 text-right">09:00</div>
+                            <div class="bg-black/50 border border-gray-800 p-3 rounded-lg flex-1 hover:border-gray-600 transition-colors">
+                                <h4 class="text-white text-sm font-medium">Petr Dvořák</h4>
+                                <p class="text-xs text-gray-400 mt-1"><i class="fas fa-mars text-gold mr-1"></i> Klasický střih + vousy</p>
+                                <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                    <span><i class="far fa-clock mr-1"></i>60 min</span>
+                                    <span class="text-gold font-semibold">500 Kč</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 10:30 -->
+                        <div class="flex items-center gap-4 py-1.5 opacity-30">
+                            <div class="text-gray-500 font-medium text-sm w-12 text-right">10:30</div>
+                            <div class="border-t border-dashed border-gray-700 flex-1"></div>
+                        </div>
+
+                        <!-- 11:00 - 2. rezervace -->
+                        <div class="flex items-start gap-4">
+                            <div class="text-gold font-bold mt-1 text-sm w-12 text-right">11:00</div>
+                            <div class="bg-black/50 border border-gray-800 p-3 rounded-lg flex-1 hover:border-gray-600 transition-colors">
+                                <h4 class="text-white text-sm font-medium">Martin Černý</h4>
+                                <p class="text-xs text-gray-400 mt-1"><i class="fas fa-mars text-gold mr-1"></i> Střih strojkem</p>
+                                <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                    <span><i class="far fa-clock mr-1"></i>30 min</span>
+                                    <span class="text-gold font-semibold">250 Kč</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Přestávka 12:00 -->
+                        <div class="flex items-center gap-4 py-1.5">
+                            <div class="text-gray-500 font-medium text-sm w-12 text-right">12:00</div>
+                            <div class="bg-gray-900/60 text-gray-500 text-xs uppercase tracking-widest text-center py-2 rounded-lg flex-1 border border-gray-800">
+                                <i class="fas fa-coffee mr-2"></i> Polední pauza (60 min)
+                            </div>
+                        </div>
+
+                        <!-- 13:00 -->
+                        <div class="flex items-center gap-4 py-1.5 opacity-30">
+                            <div class="text-gray-500 font-medium text-sm w-12 text-right">13:00</div>
+                            <div class="border-t border-dashed border-gray-700 flex-1"></div>
+                        </div>
+
+                        <!-- 14:00 - Nová potvrzená -->
+                        <div class="flex items-start gap-4">
+                            <div class="text-gold font-bold mt-1 text-sm w-12 text-right">14:00</div>
+                            <div class="bg-dark border border-gold/40 p-3 rounded-lg flex-1 relative overflow-hidden shadow-[0_0_10px_rgba(197,160,89,0.1)]">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-gold"></div>
+                                <span class="absolute top-2 right-2 bg-gold/20 text-gold text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded">Nová</span>
+                                <h4 class="text-white text-sm font-medium pr-12">Jana Nováková</h4>
+                                <p class="text-xs text-gray-400 mt-1"><i class="fas fa-venus text-gold mr-1"></i> Dámský střih – dlouhé</p>
+                                <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                    <span><i class="far fa-clock mr-1"></i>60 min</span>
+                                    <span class="text-gold font-semibold">500 Kč</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 15:30 -->
+                        <div class="flex items-center gap-4 py-1.5 opacity-30">
+                            <div class="text-gray-500 font-medium text-sm w-12 text-right">15:30</div>
+                            <div class="border-t border-dashed border-gray-700 flex-1"></div>
+                        </div>
+
+                        <!-- 16:00 -->
+                        <div class="flex items-start gap-4">
+                            <div class="text-gold font-bold mt-1 text-sm w-12 text-right">16:00</div>
+                            <div class="bg-black/50 border border-gray-800 p-3 rounded-lg flex-1 hover:border-gray-600 transition-colors">
+                                <h4 class="text-white text-sm font-medium">Klárka Malá (5 let)</h4>
+                                <p class="text-xs text-gray-400 mt-1"><i class="fas fa-child text-gold mr-1"></i> Dětský střih</p>
+                                <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                    <span><i class="far fa-clock mr-1"></i>30 min</span>
+                                    <span class="text-gold font-semibold">250 Kč</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SEKCE 3: SLUŽBY -->
+        <section id="sluzby" class="tab-content">
+            <div class="flex justify-between items-end mb-6 flex-wrap gap-3">
+                <div>
+                    <p class="text-gold tracking-[0.2em] text-xs font-semibold uppercase">Katalog</p>
+                    <h2 class="font-serif text-3xl text-white">Úprava Služeb</h2>
+                </div>
+                <button onclick="openServiceModalForAdd()" class="bg-gold-gradient text-black font-semibold uppercase tracking-wider text-xs px-5 py-3 hover:brightness-110 transition-all rounded shadow-[0_0_15px_rgba(197,160,89,0.3)] inline-flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Přidat službu
+                </button>
+            </div>
+
+            <!-- Existující služby -->
+            <div class="bg-dark-light border border-gray-800 rounded-lg overflow-hidden">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-black/50">
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold">Název</th>
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold">Kategorie</th>
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold hidden md:table-cell">Délka</th>
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold text-right">Cena</th>
+                            <th class="p-4 text-xs text-gray-500 uppercase font-semibold text-right">Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800" id="services-tbody">
+                        <!-- Vykresluje JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+        <!-- SEKCE 5: OTEVÍRACÍ DOBA -->
+        <section id="doba" class="tab-content">
+            <div class="mb-6">
+                <p class="text-gold tracking-[0.2em] text-xs font-semibold uppercase">Dostupnost</p>
+                <h2 class="font-serif text-3xl text-white">Otevírací Doba</h2>
+                <p class="text-xs text-gray-500 mt-2">Klikněte na tlačítko pro přepnutí mezi otevřeno a zavřeno. Pro otevřený den nastavte časy.</p>
+            </div>
+
+            <div class="bg-dark-light border border-gray-800 p-3 sm:p-5 rounded-lg" id="hoursContainer">
+                <div class="space-y-1.5" id="hoursList"></div>
+
+                <!-- Výjimky pro konkrétní data (svátky / dovolená / mimořádná otevíračka) -->
+                <div class="mt-6 pt-4 border-t border-gray-800">
+                    <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+                        <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase">Výjimky pro konkrétní data</p>
+                        <p class="text-[11px] text-gray-500">Svátky, dovolená nebo mimořádná otvíračka</p>
+                    </div>
+
+                    <div id="overridesList" class="mb-3"></div>
+
+                    <div class="bg-black/30 border border-gray-800 rounded p-3 grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                        <input type="date" id="ovDate" class="sm:col-span-3 p-2 text-xs rounded bg-black/60 border border-gray-700 text-white">
+                        <label class="sm:col-span-2 flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                            <input type="checkbox" id="ovClosed" class="w-4 h-4 accent-[#c5a059]">Zavřeno
+                        </label>
+                        <input type="time" id="ovFrom" value="09:00" class="sm:col-span-1 p-2 text-xs rounded bg-black/60 border border-gray-700 text-white">
+                        <span class="hidden sm:inline text-gray-500 text-xs text-center">–</span>
+                        <input type="time" id="ovTo" value="14:00" class="sm:col-span-1 p-2 text-xs rounded bg-black/60 border border-gray-700 text-white">
+                        <input type="text" id="ovReason" placeholder="Důvod (volitelné)" maxlength="150" class="sm:col-span-3 p-2 text-xs rounded bg-black/60 border border-gray-700 text-white">
+                        <button onclick="window.__adminHours.addOverride()" type="button" class="sm:col-span-1 bg-gold/10 text-gold border border-gold/40 hover:bg-gold hover:text-black transition-colors px-3 py-2 text-xs uppercase tracking-wider rounded font-semibold">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end pt-4 border-t border-gray-800">
+                    <button onclick="saveHours()" class="bg-gold-gradient text-black font-semibold uppercase tracking-wider text-xs px-8 py-3 hover:brightness-110 transition-all rounded shadow-lg">
+                        <i class="fas fa-save mr-2"></i>Uložit otevírací dobu
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal pro úpravu služby -->
+    <div id="serviceModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-80 transition-opacity duration-300 opacity-0 p-4">
+        <div class="bg-dark-light border border-gold/30 p-6 rounded-lg shadow-2xl max-w-lg w-full transform scale-95 transition-transform duration-300 relative" id="serviceModalContent">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gold-gradient rounded-t-lg"></div>
+
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <p class="text-gold tracking-[0.2em] text-[10px] font-semibold uppercase">Úprava služby</p>
+                    <h3 class="font-serif text-2xl text-white" id="serviceModalTitle">Upravit službu</h3>
+                </div>
+                <button onclick="closeServiceModal()" class="text-gray-500 hover:text-white transition-colors w-8 h-8 flex items-center justify-center" aria-label="Zavřít">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveService(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Název služby</label>
+                    <input type="text" id="serviceModalName" required class="p-3 text-sm rounded w-full" placeholder="Např. Dámský střih">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Kategorie</label>
+                        <select id="serviceModalCategory" class="p-3 text-sm rounded w-full">
+                            <option value="damske">Dámské</option>
+                            <option value="panske">Pánské</option>
+                            <option value="detske">Dětské</option>
+                        </select>
+                    </div>
+                    <div id="serviceModalSubcategoryWrapper">
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Podkategorie</label>
+                        <select id="serviceModalSubcategory" class="p-3 text-sm rounded w-full">
+                            <option value="">— žádná —</option>
+                            <option value="poprve">Jsem u vás poprvé</option>
+                            <option value="pravidelne">Chodím pravidelně</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Délka</label>
+                        <input type="text" id="serviceModalDuration" class="p-3 text-sm rounded w-full" placeholder="Např. 60 min">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Cena</label>
+                        <div class="relative">
+                            <input type="number" id="serviceModalPrice" class="p-3 pl-3 pr-12 text-sm w-full rounded" placeholder="Cena (prázdné = na dotaz)">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Kč</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Popis <span class="text-gray-600 normal-case tracking-normal">(nepovinné)</span></label>
+                    <textarea id="serviceModalDescription" rows="3" class="p-3 text-sm rounded w-full" placeholder="Krátký popis služby..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Ikona</label>
+                    <div class="grid grid-cols-6 gap-2" id="iconPicker">
+                        <button type="button" data-icon="fa-cut" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-cut"></i></button>
+                        <button type="button" data-icon="fa-palette" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-palette"></i></button>
+                        <button type="button" data-icon="fa-tint" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-tint"></i></button>
+                        <button type="button" data-icon="fa-magic" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-magic"></i></button>
+                        <button type="button" data-icon="fa-layer-group" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-layer-group"></i></button>
+                        <button type="button" data-icon="fa-leaf" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-leaf"></i></button>
+                        <button type="button" data-icon="fa-user-tie" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-user-tie"></i></button>
+                        <button type="button" data-icon="fa-bolt" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-bolt"></i></button>
+                        <button type="button" data-icon="fa-child" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-child"></i></button>
+                        <button type="button" data-icon="fa-mars" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-mars"></i></button>
+                        <button type="button" data-icon="fa-venus" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-venus"></i></button>
+                        <button type="button" data-icon="fa-spray-can" class="icon-option p-3 border border-gray-800 rounded hover:border-gold text-gray-400 hover:text-gold transition-colors"><i class="fas fa-spray-can"></i></button>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-4 border-t border-gray-800 mt-2">
+                    <button type="button" onclick="closeServiceModal()" class="flex-1 border border-gray-700 text-gray-300 hover:bg-gray-800 px-4 py-3 text-xs uppercase tracking-wider transition-colors rounded">
+                        Zrušit
+                    </button>
+                    <button type="submit" class="flex-1 bg-gold-gradient text-black font-semibold px-4 py-3 text-xs uppercase tracking-wider hover:brightness-110 transition-all rounded shadow-lg">
+                        <i class="fas fa-save mr-2"></i>Uložit změny
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal pro potvrzení rezervace -->
+    <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-80 transition-opacity duration-300 opacity-0 p-4">
+        <div class="bg-dark-light border border-gold/30 p-7 rounded-lg shadow-2xl max-w-md w-full text-center transform scale-95 transition-transform duration-300 relative" id="confirmModalContent">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gold-gradient rounded-t-lg"></div>
+            <div class="bg-green-900/30 border border-green-900/50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-400 text-2xl"></i>
+            </div>
+            <h3 class="font-serif text-2xl text-white mb-2">Rezervace potvrzena</h3>
+            <p class="text-gray-400 mb-2 text-sm">Klientka <span class="text-gold font-semibold">Jana Nováková</span> bude informována o potvrzení termínu.</p>
+            <div class="bg-black/40 border border-gray-800 rounded-lg p-4 my-5 text-left">
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-gray-500">Služba:</span>
+                    <span class="text-white">Dámský střih – dlouhé vlasy</span>
+                </div>
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-gray-500">Termín:</span>
+                    <span class="text-white">15. května 2026 ve 14:00</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Cena:</span>
+                    <span class="text-gold font-semibold">500 Kč</span>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="closeConfirmModal()" class="flex-1 border border-gray-700 text-gray-300 hover:bg-gray-800 px-4 py-3 text-xs uppercase tracking-wider transition-colors rounded">
+                    Zavřít
+                </button>
+                <button onclick="closeConfirmModal()" class="flex-1 bg-gold-gradient text-black font-semibold px-4 py-3 text-xs uppercase tracking-wider hover:brightness-110 transition-all rounded shadow-lg">
+                    <i class="fas fa-paper-plane mr-2"></i>Odeslat klientovi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAGIC NAVIGATION MENU (5 Položek) -->
+    <div class="navigation">
+        <ul id="nav-list">
+            <!-- 1. Rezervace -->
+            <li class="active" onclick="switchTab(0, 'rezervace')">
+                <a href="#">
+                    <span class="icon"><i class="fas fa-inbox"></i></span>
+                    <span class="text">Žádosti</span>
+                </a>
+            </li>
+            <!-- 2. Kalendář -->
+            <li onclick="switchTab(1, 'kalendar')">
+                <a href="#">
+                    <span class="icon"><i class="far fa-calendar-alt"></i></span>
+                    <span class="text">Kalendář</span>
+                </a>
+            </li>
+            <!-- 3. Služby -->
+            <li onclick="switchTab(2, 'sluzby')">
+                <a href="#">
+                    <span class="icon"><i class="fas fa-cut"></i></span>
+                    <span class="text">Služby</span>
+                </a>
+            </li>
+            <!-- 4. Nastavení / Doba -->
+            <li onclick="switchTab(3, 'doba')">
+                <a href="#">
+                    <span class="icon"><i class="far fa-clock"></i></span>
+                    <span class="text">Doba</span>
+                </a>
+            </li>
+            
+            <!-- Pohyblivý indikátor (Kolečko) -->
+            <div class="indicator"></div>
+        </ul>
+    </div>
+
+    <!-- Modal: detail dne v kalendáři -->
+    <div id="dayDetailModal" class="fixed inset-0 z-50 hidden bg-black/80 flex items-center justify-center p-4">
+        <div id="dayDetailContent" class="bg-dark-light border border-gold/30 p-6 rounded-lg shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto"></div>
+    </div>
+
+    <!-- Veškerá logika administrace -->
+    <script src="admin.js"></script>
+</body>
+</html>
